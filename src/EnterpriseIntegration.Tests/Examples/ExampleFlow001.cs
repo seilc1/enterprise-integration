@@ -1,4 +1,4 @@
-﻿using EnterpriseIntegration.ChannelAttributes;
+﻿using EnterpriseIntegration.Attributes;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
@@ -18,25 +18,25 @@ namespace EnterpriseIntegration.Tests.Examples
             this.logger = logger;
         }
 
-        [MessageChannel(InChannelName = "hello", OutChannelName = "world")]
+        [ServiceActivator(InChannelName = "hello", OutChannelName = "world")]
         public string Hello(string prefix)
         {
             return $"{prefix} hello";
         }
 
-        [MessageChannel(InChannelName = "world", OutChannelName = "random")]
+        [ServiceActivator(InChannelName = "world", OutChannelName = "random")]
         public string World(string data)
         {
             return $"{data} world";
         }
 
-        [MessageRouter(InChannelName = "random")]
+        [Router(InChannelName = "random")]
         public string Randomizer(string data)
         {
             return Random.Shared.NextInt64() % 2 == 0 ? "hello" : "end";
         }
 
-        [MessageTerminator(InChannelName = "end")]
+        [Endpoint(InChannelName = "end")]
         public void End(string data)
         {
             logger.LogInformation($"{data}.");

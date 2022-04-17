@@ -1,4 +1,4 @@
-﻿using EnterpriseIntegration.ChannelAttributes;
+﻿using EnterpriseIntegration.Attributes;
 using EnterpriseIntegration.Errors;
 using System.Reflection;
 
@@ -6,7 +6,7 @@ namespace EnterpriseIntegration.Flow
 {
     public class AttributeFlowDataSource : IFlowDataSource
     {
-        private static readonly Type ROOT_TYPE = typeof(BaseChannelAttribute);
+        private static readonly Type ROOT_TYPE = typeof(EnterpriseIntegrationAttribute);
 
         public IEnumerable<MethodInfo> GetAllMethodsWithIntegrationAttribute()
         {
@@ -26,7 +26,7 @@ namespace EnterpriseIntegration.Flow
 
             switch (integrationAttribute)
             {
-                case MessageChannelAttribute attr:
+                case ServiceActivatorAttribute attr:
                     return new FlowNode()
                     {
                         Name = methodInfo.Name,
@@ -35,7 +35,7 @@ namespace EnterpriseIntegration.Flow
                         OutChannelName = attr.OutChannelName,
                         MethodInfo = methodInfo
                     };
-                case MessageTerminatorAttribute attr:
+                case EndpointAttribute attr:
                     return new FlowNode()
                     {
                         Name = methodInfo.Name,
@@ -43,7 +43,7 @@ namespace EnterpriseIntegration.Flow
                         InChannelName = attr.InChannelName,
                         MethodInfo = methodInfo
                     };
-                case MessageRouterAttribute attr:
+                case RouterAttribute attr:
                     return new FlowNode()
                     {
                         Name = methodInfo.Name,
