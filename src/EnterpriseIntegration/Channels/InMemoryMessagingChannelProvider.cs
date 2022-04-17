@@ -1,19 +1,20 @@
-﻿using System.Collections.Concurrent;
+﻿using EnterpriseIntegration.Message;
+using System.Collections.Concurrent;
 
 namespace EnterpriseIntegration.Channels
 {
     public class InMemoryMessagingChannelProvider : IMessagingChannelProvider
     {
-        private ConcurrentDictionary<string, object> MessageChannels { get; init; } = new ConcurrentDictionary<string, object>();
+        private ConcurrentDictionary<string, IMessagingChannel> MessageChannels { get; init; } = new ConcurrentDictionary<string, IMessagingChannel>();
 
-        public IMessagingChannel<T> GetMessagingChannel<T>(string channelName)
+        private static IMessagingChannel CreateMessagingChannel()
         {
-            return MessageChannels.GetOrAdd(channelName, CreateMessagingChannel<T>()) as IMessagingChannel<T>;
+            return new PointToPointDirectMessagingChannel();
         }
 
-        private IMessagingChannel<T> CreateMessagingChannel<T>()
+        public IMessagingChannel GetMessagingChannel(string channelName)
         {
-            return new PointToPointDirectMessagingChannel<T>();
+            return MessageChannels.GetOrAdd(channelName, CreateMessagingChannel());
         }
     }
 }

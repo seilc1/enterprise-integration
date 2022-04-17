@@ -36,21 +36,11 @@ namespace EnterpriseIntegration.Tests.Examples
             return Random.Shared.NextInt64() % 2 == 0 ? "hello" : "end";
         }
 
-        [MessageChannel(InChannelName = "end", OutChannelName = "announce-number")]
+        [MessageTerminator(InChannelName = "end")]
         public void End(string data)
         {
             logger.LogInformation($"{data}.");
             Interlocked.Increment(ref flowCompletedCounter);
-
-            AnnounceNumber(flowCompletedCounter);
         }
-
-        [MessageTerminator(InChannelName = "announce-number")]
-        public void AnnounceNumber(int number)
-        {
-            logger.LogInformation($"{number}.");
-        }
-
-
     }
 }

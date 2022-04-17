@@ -6,10 +6,13 @@ namespace EnterpriseIntegration.Channels
     /// Channel to send and receive <see cref="IMessage{T}"/>.
     /// <see href="https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessagingChannelsIntro.html"/>
     /// </summary>
-    public interface IMessagingChannel<T>
+    public interface IMessagingChannel
     {
-        public Task Send(IMessage<T> message);
+        /// <summary>
+        ///     Sends a <see cref="IMessage{T}"/> to the channel, how the message is handled, depends on the implementation (Point-To-Point, Publish-Subscriber, ...).
+        /// </summary>
+        public Task Send<T>(IMessage<T> message);
 
-        public Task Subscribe(Action<IMessage<T>> subscriber);
+        public Task Subscribe<T>(Action<IMessage<T>> subscriber);
     }
 }

@@ -60,3 +60,13 @@ see: [EIP: Point to Point Channel](https://www.enterpriseintegrationpatterns.com
 
 Is an InMemory Channel allowing to connect two endpoints with eachother. The channel is One-to-One connection, directly moving the return value of one endpoint
 to the next endpoint.
+
+
+# Errors
+
+Common Errors and how to fix them:
+
+| Exception | How to solve |
+| :--- | :--- |
+| TooManyPayloadParameters | The method used as a flow node receiver has too many "payload" parameters. A method should have only one `value` parameter, which could be either any type or a parameter of type `IMessage<>`. In addition it is possible to have an `IMessageHeaders` injected. |
+

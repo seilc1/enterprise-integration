@@ -1,16 +1,11 @@
 ﻿namespace EnterpriseIntegration.Message
 {
     public interface IMessageMetaData
-    {        
-        /// <summary>
-        /// Id of the <see cref="IMessage{T}"/>, which remains the same during the complete flow.
-        /// </summary>
-        public Guid Id { get; }
-
+    {
         /// <summary>
         ///     Headers for this Message, which are transported through the complete flow.
         /// </summary>
-        public Dictionary<string, string> MessageHeaders { get; }
+        public IMessageHeaders MessageHeaders { get; }
 
         /// <summary>
         ///     Bag to store and transport objects with the message.

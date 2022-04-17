@@ -1,4 +1,6 @@
-﻿namespace EnterpriseIntegration.Channels
+﻿using EnterpriseIntegration.Message;
+
+namespace EnterpriseIntegration.Channels
 {
     /// <summary>
     ///     Provides a simple channel implementation to send and receive messages
@@ -6,8 +8,8 @@
     public interface IMessagingChannelProvider
     {
         /// <summary>
-        /// Gets or Creates a Channel for the requested <see cref="Type"/> and channelName.
+        ///     Gets or Creates a <see cref="IMessagingChannel"/> for a channel name.
         /// </summary>
-        public IMessagingChannel<T> GetMessagingChannel<T>(string channelName);
+        public IMessagingChannel GetMessagingChannel(string channelName);
     }
 }

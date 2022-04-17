@@ -1,4 +1,5 @@
 ﻿using EnterpriseIntegration.Channels;
+using EnterpriseIntegration.Errors;
 using EnterpriseIntegration.Message;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
@@ -11,6 +12,7 @@ namespace EnterpriseIntegration.Flow
         private readonly IFlowDataSource _flowDataSource;
         private readonly IMessagingChannelProvider _messagingChannelProvider;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IDictionary<string, FlowNode> _flowNodes = new Dictionary<string, FlowNode>();
 
         public FlowEngine(
             ILogger logger,
@@ -30,56 +32,87 @@ namespace EnterpriseIntegration.Flow
         {
             foreach (var flowNode in _flowDataSource.GetAllFlowNodes())
             {
-                _logger.LogInformation("Add channel subscription to `{channelName}`", flowNode.InChannelName);
+                Type? type = FlowEngineResolver.ExpectedPayloadType(flowNode);
+                _logger.LogInformation("Add channel subscription to `{ChannelName}` (type:{NodeType}, payload:{PayloadType})", flowNode.InChannelName, flowNode.NodeType, type);
+                _flowNodes.Add(flowNode.InChannelName, flowNode);
                 GetType().GetMethod(nameof(SubscribeChannel), BindingFlags.Instance | BindingFlags.NonPublic)
-                    .MakeGenericMethod(getExpectedPayloadType(flowNode))
+                    .MakeGenericMethod(type != null ? type : typeof(VoidParameter))
                     .Invoke(this, new object?[] { flowNode });
             }
         }
 
-        private void MessageSubscriber<T>(IMessage<T> message, FlowNode flowNode)
+        private void HandleMessageReceived<T>(IMessage<T> message, FlowNode flowNode)
         {
-            _logger.LogDebug("Received Message(Id:{id}) for Node:({nodeName})", message.Id, flowNode.Name);
-
-            var parent = _serviceProvider.GetService(flowNode.MethodInfo.DeclaringType);
-            var result = flowNode.MethodInfo.Invoke(parent, new object?[] { message.Payload });
+            _logger.LogDebug("Received Message(Id:{id}) for Node:({nodeName})", message.MessageHeaders.Id, flowNode.Name);
+            var result = InvokeFlowNodeMethod(message, flowNode);
 
             switch (flowNode.NodeType)
             {
                 case FlowNodeType.Method:
-                    GetType().GetMethod(nameof(ForwardMessageToNextChannel), BindingFlags.Instance | BindingFlags.NonPublic)
-                        .MakeGenericMethod(result.GetType())
-                        .Invoke(this, new object?[] { flowNode.OutChannelName, message, result });
+                    InvokeForwardMessageToNextChannel(flowNode, message, result);
                     break;
                 case FlowNodeType.Router:
-                    _messagingChannelProvider.GetMessagingChannel<T>(result.ToString()).Send(message);
+                    _logger.LogDebug("ROUTER: forwarding message {Message} to {ChannelName}", message, result.ToString());
+                    _messagingChannelProvider.GetMessagingChannel(result.ToString()).Send(message).Wait();
                     break;
             }
         }
 
-        private static Type? getExpectedPayloadType(FlowNode flowNode)
+        private object? InvokeFlowNodeMethod<T>(IMessage<T> message, FlowNode flowNode)
         {
-            return flowNode.MethodInfo.GetParameters().FirstOrDefault()?.ParameterType;
+            var parent = _serviceProvider.GetService(flowNode.MethodInfo.DeclaringType);
+            var parameterInfos = flowNode.MethodInfo.GetParameters();
+            var parameters = new object?[parameterInfos.Length];
+            foreach(var parameterInfo in parameterInfos)
+            {
+                if (parameterInfo.ParameterType == typeof(T))
+                {
+                    parameters[parameterInfo.Position] = message.Payload;
+                }
+                else if (parameterInfo.ParameterType == typeof(IMessage<T>))
+                {
+                    parameters[parameterInfo.Position] = message;
+                }
+                else if (parameterInfo.ParameterType == typeof(IMessageHeaders))
+                {
+                    parameters[parameterInfo.Position] = message.MessageHeaders;
+                }
+                else
+                {
+                    throw new EnterpriseIntegrationException($"FlowNode:{flowNode.Name} on {flowNode.MethodInfo.DeclaringType}.{flowNode.MethodInfo.Name} has an unsupported Parameter: {parameterInfo.ParameterType} {parameterInfo.Name}");
+                }
+            }
+
+            return flowNode.MethodInfo.Invoke(parent, parameters);
         }
 
         private void SubscribeChannel<T>(FlowNode flowNode)
         {
-            _messagingChannelProvider.GetMessagingChannel<T>(flowNode.InChannelName).Subscribe(msg => MessageSubscriber(msg, flowNode));
+            _messagingChannelProvider.GetMessagingChannel(flowNode.InChannelName).Subscribe<T>(msg => HandleMessageReceived(msg, flowNode));
+        }
+
+        private void InvokeForwardMessageToNextChannel(FlowNode flowNode, object message, object payload)
+        {
+            var method = GetType().GetMethod(nameof(ForwardMessageToNextChannel), BindingFlags.Instance | BindingFlags.NonPublic);
+            var genericMethod = method.MakeGenericMethod(payload.GetType());
+            genericMethod.Invoke(this, new object?[] { flowNode.OutChannelName, message, payload });
         }
 
         private void ForwardMessageToNextChannel<T>(string channel, IMessageMetaData messageMetaData, T payload)
         {
+            _logger.LogDebug("ForwardMessageToNextChannel<{Type}>({Channel}, {MessageMetaData}, {Payload})", typeof(T), channel, messageMetaData, payload);
             SendMessage(channel, GenericMessage<T>.From(messageMetaData, payload)).Wait();
         }
 
         private Task SendMessage<T>(string channel, IMessage<T> message)
         {
-            return _messagingChannelProvider.GetMessagingChannel<T>(channel).Send(message);
+            _logger.LogDebug("SendMessage<{Type}>({Channel}, {Message})", typeof(T), channel, message);
+            return _messagingChannelProvider.GetMessagingChannel(channel).Send(message);
         }
 
         public async Task Submit<T>(string channel, T payload)
         {
-            await SendMessage(channel, new GenericMessage<T> { Payload = payload });
+            await SendMessage(channel, new GenericMessage<T>(payload));
         }
     }
 }

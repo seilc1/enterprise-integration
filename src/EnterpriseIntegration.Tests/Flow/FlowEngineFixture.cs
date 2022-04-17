@@ -67,5 +67,23 @@ namespace EnterpriseIntegration.Tests.Flow
             logger.LogDebug($"Completed in: {watch.ElapsedMilliseconds}ms");
             exampleFlowClass.FlowsCompleted.Should().Be(3);
         }
+
+        [Fact]
+        public async void ShouldCompleteFlowWithDynamicParameters()
+        {
+            // arrange
+            var exampleFlowClass = new ExampleFlow002(logger);
+            serviceProviderMock.GetService(exampleFlowClass.GetType()).Returns(exampleFlowClass);
+
+            // act
+            Stopwatch watch = Stopwatch.StartNew();
+            await sut.Submit("02-hello", "FLOW2:");
+            watch.Stop();
+
+            Thread.Sleep(1000);
+
+            logger.LogDebug($"Completed in: {watch.ElapsedMilliseconds}ms");
+            exampleFlowClass.FlowsCompleted.Should().Be(1);
+        }
     }
 }

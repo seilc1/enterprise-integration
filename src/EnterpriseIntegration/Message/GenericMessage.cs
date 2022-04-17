@@ -1,21 +1,31 @@
-﻿namespace EnterpriseIntegration.Message
+﻿using System.Diagnostics;
+
+namespace EnterpriseIntegration.Message
 {
     public record GenericMessage<T> : IMessage<T>
     {
-        public Guid Id { get; init; } = Guid.NewGuid();
+        public GenericMessage(T payload)
+        {
+            Debug.Assert(payload != null);
 
-        public T? Payload { get; init; }
+            MessageHeaders.Id = Guid.NewGuid().ToString();
+            MessageHeaders.CreatedDate = DateTime.Now;
+            Payload = payload;
+            PayloadType = Payload.GetType();
+        }
 
-        public Dictionary<string, string> MessageHeaders { get; init; } = new Dictionary<string, string>();
+        public T Payload { get; init; }
 
         public Dictionary<string, object> MessageBag { get; init; } = new Dictionary<string, object>();
 
+        public IMessageHeaders MessageHeaders { get; init; } = new MessageHeaders();
+
+        public Type PayloadType { get; init; }
+
         public static GenericMessage<T> From(IMessageMetaData metaData, T payload)
         {
-            return new GenericMessage<T>
+            return new GenericMessage<T>(payload)
             {
-                Id = metaData.Id,
-                Payload = payload,
                 MessageHeaders = metaData.MessageHeaders,
                 MessageBag = metaData.MessageBag
             };
