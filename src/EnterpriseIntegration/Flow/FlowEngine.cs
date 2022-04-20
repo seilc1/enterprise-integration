@@ -1,4 +1,5 @@
-﻿using EnterpriseIntegration.Channels;
+﻿using EnterpriseIntegration.Attributes;
+using EnterpriseIntegration.Channels;
 using EnterpriseIntegration.Errors;
 using EnterpriseIntegration.Message;
 using Microsoft.Extensions.Logging;
@@ -41,6 +42,18 @@ namespace EnterpriseIntegration.Flow
             }
         }
 
+        [Endpoint(InChannelName = EngineChannels.DefaultErrorChannel)]
+        public void ErrorChannel(IMessage<MessageFailure> exceptionWithMessage)
+        {
+            _logger.LogError("Error occured with message:{Message} and payload:{Payload}.", exceptionWithMessage, exceptionWithMessage.Payload.originalPayload, exceptionWithMessage.Payload.exception);
+        }
+
+        [Router(InChannelName = EngineChannels.RouteByHeaderChannel)]
+        public string RouteByHeader(IMessageHeaders headers)
+        {
+            return headers.RouteToChannel;
+        }
+
         private void HandleMessageReceived<T>(IMessage<T> message, FlowNode flowNode)
         {
             _logger.LogDebug("Received Message(Id:{id}) for Node:({nodeName})", message.MessageHeaders.Id, flowNode.Name);
@@ -60,7 +73,16 @@ namespace EnterpriseIntegration.Flow
 
         private object? InvokeFlowNodeMethod<T>(IMessage<T> message, FlowNode flowNode)
         {
+            if (flowNode.MethodInfo.DeclaringType == null)
+            {
+                throw new EnterpriseIntegrationException($"FlowNode:{flowNode.Name}'s Method:{flowNode.MethodInfo.Name} must be defined on a class");
+            }
             var parent = _serviceProvider.GetService(flowNode.MethodInfo.DeclaringType);
+            if (parent == null)
+            {
+                throw new EnterpriseIntegrationException($"FlowNode:{flowNode.Name}' uses Method:{flowNode.MethodInfo.Name} on Class:{flowNode.MethodInfo.DeclaringType}. No instance of Class:{flowNode.MethodInfo.DeclaringType} is registered in the service provider.");
+            }
+
             var parameterInfos = flowNode.MethodInfo.GetParameters();
             var parameters = new object?[parameterInfos.Length];
             foreach(var parameterInfo in parameterInfos)
@@ -110,9 +132,14 @@ namespace EnterpriseIntegration.Flow
             return _messagingChannelProvider.GetMessagingChannel(channel).Send(message);
         }
 
-        public async Task Submit<T>(string channel, T payload)
+        public Task Submit<T>(string channel, T payload)
         {
-            await SendMessage(channel, new GenericMessage<T>(payload));
+            return Submit(channel, new MessageHeaders(), payload);
+        }
+
+        public async Task Submit<T>(string channel, IMessageHeaders headers, T payload)
+        {
+            await SendMessage(channel, new GenericMessage<T>(headers, payload));
         }
     }
 }

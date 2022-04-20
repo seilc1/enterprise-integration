@@ -85,5 +85,25 @@ namespace EnterpriseIntegration.Tests.Flow
             logger.LogDebug($"Completed in: {watch.ElapsedMilliseconds}ms");
             exampleFlowClass.FlowsCompleted.Should().Be(1);
         }
+
+
+        [Fact]
+        public async void ShouldUseEngineRouting()
+        {
+            // arrange
+            var exampleFlowClass = new RoutingFlow003(logger);
+            serviceProviderMock.GetService(exampleFlowClass.GetType()).Returns(exampleFlowClass);
+            serviceProviderMock.GetService(sut.GetType()).Returns(sut);
+
+            // act
+            Stopwatch watch = Stopwatch.StartNew();
+            await sut.Submit<object>("003-start", null);
+            watch.Stop();
+
+            Thread.Sleep(50);
+
+            logger.LogDebug($"Completed in: {watch.ElapsedMilliseconds}ms");
+            exampleFlowClass.ValueAtTheEnd.Should().Be(13.37);
+        }
     }
 }

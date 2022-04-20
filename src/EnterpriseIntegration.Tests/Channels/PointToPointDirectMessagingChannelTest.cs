@@ -30,7 +30,7 @@ namespace EnterpriseIntegration.Tests.Channels
             var msg = new GenericMessage<string>(stringValue);
 
             // act
-            var result = PointToPointDirectMessagingChannel.transformMessage<object>(msg);
+            var result = (new DefaultMessageTransformer()).TransformMessage<object>(msg);
 
             // assert
             result.Payload.Should().BeEquivalentTo(stringValue);

@@ -17,5 +17,11 @@
         ///     Name of the <see cref="Channels.IMessagingChannel"/> to which the message should be forwarded, if an exception in the flow happens.
         /// </summary>
         public const string ErrorChannel = "EI_ERROR_CHANNEL";
+
+        /// <summary>
+        ///     By setting this field and sending a message to the channel: <see cref="Channels.EngineChannels.RouteByHeaderChannel"/> the message will be forwarded to
+        ///     the defined channel.
+        /// </summary>
+        public const string RouteToChannel = "EI_ROUTE_TO_CHANNEL";
     }
 }

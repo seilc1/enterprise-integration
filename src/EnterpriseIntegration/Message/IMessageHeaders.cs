@@ -42,5 +42,28 @@ namespace EnterpriseIntegration.Message
                 }
             }
         }
+
+        /// <summary>
+        ///     By setting this field and sending a message to the channel: <see cref="Channels.EngineChannels.RouteByHeaderChannel"/> the message will be forwarded to
+        ///     the defined channel.
+        /// </summary>
+        public string? RouteToChannel
+        {
+            get { return ContainsKey(HeaderFields.RouteToChannel) ? this[HeaderFields.RouteToChannel] : null; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    if (ContainsKey(HeaderFields.RouteToChannel))
+                    {
+                        Remove(HeaderFields.RouteToChannel);
+                    }
+                }
+                else
+                {
+                    this[HeaderFields.RouteToChannel] = value;
+                }
+            }
+        }
     }
 }

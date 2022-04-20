@@ -4,14 +4,16 @@ namespace EnterpriseIntegration.Message
 {
     public record GenericMessage<T> : IMessage<T>
     {
-        public GenericMessage(T payload)
-        {
-            Debug.Assert(payload != null);
+        public GenericMessage(T payload) : this(new MessageHeaders(), payload)
+        { }
 
+        public GenericMessage(IMessageHeaders headers, T payload)
+        {
+            MessageHeaders = headers;
             MessageHeaders.Id = Guid.NewGuid().ToString();
             MessageHeaders.CreatedDate = DateTime.Now;
             Payload = payload;
-            PayloadType = Payload.GetType();
+            PayloadType = payload == null ? typeof(object) : payload.GetType();
         }
 
         public T Payload { get; init; }
@@ -24,9 +26,8 @@ namespace EnterpriseIntegration.Message
 
         public static GenericMessage<T> From(IMessageMetaData metaData, T payload)
         {
-            return new GenericMessage<T>(payload)
+            return new GenericMessage<T>(metaData.MessageHeaders, payload)
             {
-                MessageHeaders = metaData.MessageHeaders,
                 MessageBag = metaData.MessageBag
             };
         }
