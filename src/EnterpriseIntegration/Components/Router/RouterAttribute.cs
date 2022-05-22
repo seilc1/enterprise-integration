@@ -7,5 +7,8 @@
     /// </summary>
     public class RouterAttribute : EnterpriseIntegrationAttribute
     {
+        public RouterAttribute(string inChannelName) : base(inChannelName)
+        {
+        }
     }
 }

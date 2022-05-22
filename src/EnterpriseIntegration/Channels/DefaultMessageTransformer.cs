@@ -15,7 +15,7 @@ namespace EnterpriseIntegration.Channels
             return GenericMessage<T>.From((IMessageMetaData)message, TransformPayload<T>(IMessage<object>.ReflectPayload(message)));
         }
 
-        public static T TransformPayload<T>(object payload)
+        public static T? TransformPayload<T>(object payload)
         {
             if (payload == null)
             {

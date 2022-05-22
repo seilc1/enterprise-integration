@@ -27,10 +27,10 @@ namespace EnterpriseIntegration.Tests.Flow
             var result = sut.GetAllFlowNodes().ToList();
 
             result.Count().Should().BeGreaterThanOrEqualTo(4);
-            result.Should().ContainSingle(n => n.InChannelName == "hello" && n.OutChannelName == "world" && n.NodeType == FlowNodeType.Method);
-            result.Should().ContainSingle(n => n.InChannelName == "world" && n.OutChannelName == "random" && n.NodeType == FlowNodeType.Method);
+            result.Should().ContainSingle(n => n.InChannelName == "hello" && n.OutChannelName == "world" && n.NodeType == FlowNodeType.ServiceActivator);
+            result.Should().ContainSingle(n => n.InChannelName == "world" && n.OutChannelName == "random" && n.NodeType == FlowNodeType.ServiceActivator);
             result.Should().ContainSingle(n => n.InChannelName == "random" && n.OutChannelName == null && n.NodeType == FlowNodeType.Router);
-            result.Should().ContainSingle(n => n.InChannelName == "end" && n.OutChannelName == null && n.NodeType == FlowNodeType.Terminator);
+            result.Should().ContainSingle(n => n.InChannelName == "end" && n.OutChannelName == null && n.NodeType == FlowNodeType.Endpoint);
         }
 
     }

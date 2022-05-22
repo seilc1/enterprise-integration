@@ -5,16 +5,19 @@ namespace EnterpriseIntegration.Channels
 {
     public class PointToPointDirectMessagingChannel : IMessagingChannel
     {
-        private Action<object>? _subscriber;
+        private Func<IMessage, Task>? _subscriber;
 
         private static IMessageTransformer _transformer = new DefaultMessageTransformer();
 
-        public Task Send<T>(IMessage<T> message)
+        public async Task Send(IMessage message)
         {
-            return Task.Run(() => _subscriber?.Invoke(message));
+            if (_subscriber != null)
+            {
+                await _subscriber.Invoke(message);
+            }
         }
 
-        public Task Subscribe<T>(Action<IMessage<T>> subscriber)
+        public Task Subscribe<T>(Func<IMessage<T>, Task> subscriber)
         {
             if (_subscriber != null)
             {
@@ -24,6 +27,5 @@ namespace EnterpriseIntegration.Channels
             _subscriber = msg => subscriber.Invoke(_transformer.TransformMessage<T>(msg));
             return Task.CompletedTask;
         }
-
     }
 }

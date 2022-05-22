@@ -7,7 +7,7 @@ namespace EnterpriseIntegration.Message
         public GenericMessage(T payload) : this(new MessageHeaders(), payload)
         { }
 
-        public GenericMessage(IMessageHeaders headers, T payload)
+        public GenericMessage(IMessageHeaders headers, T? payload)
         {
             MessageHeaders = headers;
             MessageHeaders.Id = Guid.NewGuid().ToString();
@@ -16,7 +16,7 @@ namespace EnterpriseIntegration.Message
             PayloadType = payload == null ? typeof(object) : payload.GetType();
         }
 
-        public T Payload { get; init; }
+        public T? Payload { get; init; }
 
         public Dictionary<string, object> MessageBag { get; init; } = new Dictionary<string, object>();
 
@@ -24,7 +24,9 @@ namespace EnterpriseIntegration.Message
 
         public Type PayloadType { get; init; }
 
-        public static GenericMessage<T> From(IMessageMetaData metaData, T payload)
+        object IMessage.Payload => Payload;
+
+        public static GenericMessage<T> From(IMessageMetaData metaData, T? payload)
         {
             return new GenericMessage<T>(metaData.MessageHeaders, payload)
             {

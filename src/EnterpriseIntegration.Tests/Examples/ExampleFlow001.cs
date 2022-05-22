@@ -18,25 +18,25 @@ namespace EnterpriseIntegration.Tests.Examples
             this.logger = logger;
         }
 
-        [ServiceActivator(InChannelName = "hello", OutChannelName = "world")]
+        [ServiceActivator(inChannelName: "hello", outChannelName: "world")]
         public string Hello(string prefix)
         {
             return $"{prefix} hello";
         }
 
-        [ServiceActivator(InChannelName = "world", OutChannelName = "random")]
+        [ServiceActivator(inChannelName: "world", outChannelName: "random")]
         public string World(string data)
         {
             return $"{data} world";
         }
 
-        [Router(InChannelName = "random")]
+        [Router(inChannelName: "random")]
         public string Randomizer(string data)
         {
             return Random.Shared.NextInt64() % 2 == 0 ? "hello" : "end";
         }
 
-        [Endpoint(InChannelName = "end")]
+        [Endpoint(inChannelName: "end")]
         public void End(string data)
         {
             logger.LogInformation($"{data}.");

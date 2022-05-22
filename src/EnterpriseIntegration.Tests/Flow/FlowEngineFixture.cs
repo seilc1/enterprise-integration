@@ -1,10 +1,12 @@
 ﻿using EnterpriseIntegration.Channels;
 using EnterpriseIntegration.Flow;
+using EnterpriseIntegration.Flow.MessageProcessing;
+using EnterpriseIntegration.Message;
 using EnterpriseIntegration.Tests.Examples;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,25 +19,24 @@ namespace EnterpriseIntegration.Tests.Flow
     {
         private readonly IMessagingChannelProvider messagingChannelProvider = new InMemoryMessagingChannelProvider();
         private readonly IFlowDataSource flowDataSource = new AttributeFlowDataSource();
-        private readonly IServiceProvider serviceProviderMock = Substitute.For<IServiceProvider>();
+        private readonly IList<IMessageProcessor> messageProcessorMocks = new List<IMessageProcessor>();
 
-        private ILogger logger;
+        private ILogger<FlowEngine> logger;
         private FlowEngine sut;
 
         public FlowEngineFixture(ITestOutputHelper testOutputHelper)
         {
-            logger = new XUnitLogger<FlowEngineFixture>(testOutputHelper);
-            sut = new FlowEngine(logger, flowDataSource, messagingChannelProvider, serviceProviderMock);
+            logger = new XUnitLogger<FlowEngine>(testOutputHelper);
+            sut = new FlowEngine(logger, flowDataSource, messageProcessorMocks, messagingChannelProvider);
         }
 
         [Fact]
         public async void ShouldSendSingleMessage()
         {
-            // arrange
+            // Arrange
             var exampleFlowClass = new ExampleFlow001(logger);
-            serviceProviderMock.GetService(exampleFlowClass.GetType()).Returns(exampleFlowClass);
 
-            // act
+            // Act
             Stopwatch watch = Stopwatch.StartNew();
             var task = sut.Submit("hello", "FLOW:");
             await task;
@@ -43,6 +44,7 @@ namespace EnterpriseIntegration.Tests.Flow
 
             Thread.Sleep(50);
 
+            // Assert
             logger.LogDebug($"Completed in: {watch.ElapsedMilliseconds}ms");
             exampleFlowClass.FlowsCompleted.Should().Be(1);
         }

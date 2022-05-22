@@ -3,8 +3,10 @@
     public enum FlowNodeType : byte
     {
         Undefined = 0,
-        Method = 1,
+        ServiceActivator = 1,
         Router = 2,
-        Terminator = byte.MaxValue,
+        Splitter = 3,
+        Aggregator = 4,
+        Endpoint = byte.MaxValue,
     }
 }
