@@ -35,14 +35,9 @@ namespace EnterpriseIntegration.Tests.Flow
         {
             // arrange
             Type parent = typeof(GoodCaseFlow);
-            MethodInfo methodInfo = parent.GetMethod(methodName);
+            MethodInfo methodInfo = parent.GetMethod(methodName)!;
 
-            FlowNode node = new FlowNode
-            {
-                Name = "TEST",
-                InChannelName = methodName,
-                MethodInfo = methodInfo
-            };
+            FlowNode node = new FlowNode("TEST", FlowNodeType.Undefined, methodName, methodInfo, null);
 
             // act
             Type result = FlowEngineResolver.ExpectedPayloadType(node);
@@ -68,12 +63,7 @@ namespace EnterpriseIntegration.Tests.Flow
             Type parent = typeof(BadCaseFlow);
             MethodInfo methodInfo = parent.GetMethod(methodName);
 
-            FlowNode node = new FlowNode
-            {
-                Name = "TEST",
-                InChannelName = methodName,
-                MethodInfo = methodInfo
-            };
+            FlowNode node = new FlowNode("TEST", FlowNodeType.Undefined, methodName, methodInfo, null);
 
             // act
             var exception = Assert.Throws<FlowNodeMethodInvalidException>(() => FlowEngineResolver.ExpectedPayloadType(node));

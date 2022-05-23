@@ -5,7 +5,7 @@ namespace EnterpriseIntegration.Flow.MessageProcessing
 {
     public abstract class InvokingMessageProcessor : IMessageProcessor
     {
-        private IServiceProvider ServiceProvider { get; }
+        protected IServiceProvider ServiceProvider { get; }
 
         protected InvokingMessageProcessor(IServiceProvider serviceProvider)
         {
@@ -29,16 +29,7 @@ namespace EnterpriseIntegration.Flow.MessageProcessing
 
         protected object? InvokeFlowNodeMethod<T>(IMessage<T> message, FlowNode flowNode)
         {
-            if (flowNode.MethodInfo.DeclaringType == null)
-            {
-                throw new EnterpriseIntegrationException($"FlowNode:{flowNode.Name}'s Method:{flowNode.MethodInfo.Name} must be defined on a class");
-            }
-
-            var parent = ServiceProvider.GetService(flowNode.MethodInfo.DeclaringType);
-            if (parent == null)
-            {
-                throw new EnterpriseIntegrationException($"FlowNode:{flowNode.Name}' uses Method:{flowNode.MethodInfo.Name} on Class:{flowNode.MethodInfo.DeclaringType}. No instance of Class:{flowNode.MethodInfo.DeclaringType} is registered in the service provider.");
-            }
+            var parent = GetInstantiatedClassDeclaringMethod(flowNode);
 
             var parameterInfos = flowNode.MethodInfo.GetParameters();
             var parameters = new object?[parameterInfos.Length];
@@ -63,6 +54,22 @@ namespace EnterpriseIntegration.Flow.MessageProcessing
             }
 
             return flowNode.MethodInfo.Invoke(parent, parameters);
+        }
+
+        protected object GetInstantiatedClassDeclaringMethod(FlowNode flowNode)
+        {
+            if (flowNode.MethodInfo.DeclaringType == null)
+            {
+                throw new EnterpriseIntegrationException($"FlowNode:{flowNode.Name}'s Method:{flowNode.MethodInfo.Name} must be defined on a class");
+            }
+
+            var parent = ServiceProvider.GetService(flowNode.MethodInfo.DeclaringType);
+            if (parent == null)
+            {
+                throw new EnterpriseIntegrationException($"FlowNode:{flowNode.Name}' uses Method:{flowNode.MethodInfo.Name} on Class:{flowNode.MethodInfo.DeclaringType}. No instance of Class:{flowNode.MethodInfo.DeclaringType} is registered in the service provider.");
+            }
+
+            return parent;
         }
     }
 }

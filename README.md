@@ -59,14 +59,32 @@ await flowEngine.Submit("hello", "FLOW:");
 | [ServiceActivator](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessagingAdapter.html) | DONE | Allows to define a method which receives and sends a Message. |
 | [Router](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageRouter.html) | DONE | Allows to define the next channel based on Conditions. |
 | [Endpoint](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageEndpoint.html) | DONE | Allows to define a method which only receives a Message. |
-| [Splitter](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Sequencer.html) | NOT YET IN | Allows to split a single Message to several Messages (,to be aggregated again). |
-| [Aggregator](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Aggregator.html) | NOT YET IN | Allows to aggregate several Messages back into one (after being split).|
+| [Splitter](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Sequencer.html) | DONE | Allows to split a single Message to several Messages (,to be aggregated again). |
+| [Aggregator](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Aggregator.html) | DONE | Allows to aggregate several Messages back into one (after being split).|
 | [Filter](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Filter.html) | NOT YET IN | Allows to only continue with a subset of Messages |
-| [WireTap](https://www.enterpriseintegrationpatterns.com/patterns/messaging/WireTap.html) | NOT YET IN | (PRE/POSTAction) Allows to consume Messages without being part of the flow |
+| [WireTap](https://www.enterpriseintegrationpatterns.com/patterns/messaging/WireTap.html) | DONE | (PRE/POSTAction) Allows to consume Messages without being part of the flow |
 | [History](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageHistory.html) | NOT YET IN | (POSTAction) Allows to Track the History of an Message |
 
-
 ## Components
+
+### WireTap
+
+WireTaps are used to listen to Messages without interrupting the Flow (for testing/debugging).
+
+```C#
+// to be injected by dependency injection
+IWireTapService wireTapService
+
+IMessage result = null;
+// first parameter: name of the channel to be tapped
+// second parameter: method to be executed, when a message arrives (in this example it stores the message in a variable)
+WireTapId id = _wireTapService.CreateWireTap("name_of_channel", async msg => result = msg);
+
+...
+
+// remove the wiretap, when you are finished, to reduce overhead.
+_wireTapService.RemoveWireTap(id);
+```
 
 ### ServiceActivator
 
@@ -135,7 +153,3 @@ Common Errors and how to fix them:
 
 
 # Architecture
-
-## Message Processing
-
-The Message processing implements the [Pipeline approach](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-6.0), similar to ASP.NET.8

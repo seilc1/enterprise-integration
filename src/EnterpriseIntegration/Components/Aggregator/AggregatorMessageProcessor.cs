@@ -36,11 +36,9 @@ public class AggregatorMessageProcessor : InvokingMessageProcessor
             return Enumerable.Empty<IMessage>();
         }
 
-
         // TODO: fix
-        // object? result = InvokeFlowNodeMethod(receivedMessages, flowNode);
-        object? result = InvokeFlowNodeMethod(message, flowNode);
-
+        object? result = InvokeFlowNodeMethod<T>(receivedMessages, flowNode);
+        
         IMessage resultMessage = AsMessage(message, result);
         resultMessage.MessageHeaders.Id = message.MessageHeaders.GetOriginalId() ?? resultMessage.MessageHeaders.Id;
         resultMessage.MessageHeaders.SetMessageGroupId(null);
@@ -72,5 +70,34 @@ public class AggregatorMessageProcessor : InvokingMessageProcessor
         }
 
         return messages.Count == int.Parse(groupCount);
+    }
+
+    protected object? InvokeFlowNodeMethod<T>(IEnumerable<IMessage> messages, FlowNode flowNode)
+    {
+        var parent = GetInstantiatedClassDeclaringMethod(flowNode);
+
+        var parameterInfos = flowNode.MethodInfo.GetParameters();
+        var parameters = new object?[parameterInfos.Length];
+        foreach (var parameterInfo in parameterInfos)
+        {
+            if (parameterInfo.ParameterType == typeof(IEnumerable<T>))
+            {
+                parameters[parameterInfo.Position] = messages.Select(m => (T)m.Payload);
+            }
+            else if (parameterInfo.ParameterType == typeof(IEnumerable<IMessage<T>>))
+            {
+                parameters[parameterInfo.Position] = messages;
+            }
+            else if (parameterInfo.ParameterType == typeof(IEnumerable<IMessageHeaders>))
+            {
+                parameters[parameterInfo.Position] = messages.Select(m => m.MessageHeaders);
+            }
+            else
+            {
+                throw new EnterpriseIntegrationException($"FlowNode:{flowNode.Name} on {flowNode.MethodInfo.DeclaringType}.{flowNode.MethodInfo.Name} has an unsupported Parameter: {parameterInfo.ParameterType} {parameterInfo.Name}");
+            }
+        }
+
+        return flowNode.MethodInfo.Invoke(parent, parameters);
     }
 }

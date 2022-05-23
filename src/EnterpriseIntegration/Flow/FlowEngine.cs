@@ -1,8 +1,8 @@
 ﻿using EnterpriseIntegration.Attributes;
 using EnterpriseIntegration.Channels;
+using EnterpriseIntegration.Components.PreActions;
 using EnterpriseIntegration.Errors;
 using EnterpriseIntegration.Flow.MessageProcessing;
-using EnterpriseIntegration.Flow.Models;
 using EnterpriseIntegration.Message;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
@@ -13,6 +13,7 @@ namespace EnterpriseIntegration.Flow
     {
         private readonly ILogger<FlowEngine> _logger;
         private readonly IFlowDataSource _flowDataSource;
+        private readonly IEnumerable<IPreAction> _preActions;
         private readonly IDictionary<FlowNodeType, IMessageProcessor> _messageProcessors;
         private readonly IMessagingChannelProvider _messagingChannelProvider;
         private readonly IDictionary<string, FlowNode> _flowNodes = new Dictionary<string, FlowNode>();
@@ -22,10 +23,12 @@ namespace EnterpriseIntegration.Flow
             ILogger<FlowEngine> logger,
             IFlowDataSource flowDataSource,
             IEnumerable<IMessageProcessor> messageProcessors,
+            IEnumerable<IPreAction> preActions,
             IMessagingChannelProvider messagingChannelProvider)
         {
             _logger = logger;
             _flowDataSource = flowDataSource;
+            _preActions = preActions;
             _messagingChannelProvider = messagingChannelProvider;
 
             _messageProcessors = messageProcessors.ToDictionary(m => m.HandledType, m => m);
@@ -91,15 +94,9 @@ namespace EnterpriseIntegration.Flow
             _subscriptions.Clear();
         }
 
-        public async Task ExecutePreActions<T>(IMessage<T> message)
+        public async Task ExecutePreActions<T>(FlowNode flowNode, IMessage<T> message)
         {
-
-        }
-
-
-        public async Task ExecutePostActions(IEnumerable<IMessage> messages)
-        {
-
+            await Task.WhenAll(_preActions.Select(a => a.PreProcess(flowNode, message)));
         }
 
         /// <summary>
@@ -130,9 +127,8 @@ namespace EnterpriseIntegration.Flow
                 Func<IMessage<T>, FlowNode, SendMessageAsync, Task<IEnumerable<IMessage>>> processor = _engine._messageProcessors[_flowNode.NodeType].Process;
                 return async msg =>
                 {
-                    await _engine.ExecutePreActions(msg);
-                    IEnumerable<IMessage> messages = await processor(msg, _flowNode, _engine.SendMessage);
-                    await _engine.ExecutePostActions(messages);
+                    await _engine.ExecutePreActions(_flowNode, msg);
+                    await processor(msg, _flowNode, _engine.SendMessage);
                 };
             }
         }
