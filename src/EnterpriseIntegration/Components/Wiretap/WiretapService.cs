@@ -10,18 +10,22 @@ public class WiretapService : IWireTapService, IPreAction
 
     public WireTapId CreateWireTap(string channelName, IWireTapService.WireTap wireTap)
     {
-        WireTapId id = new WireTapId();
+        WireTapId id = WireTapId.Create();
 
-        if (!_wireTaps.ContainsKey(channelName))
+        lock (this)
         {
-            _wireTaps.Add(channelName, new Dictionary<WireTapId, IWireTapService.WireTap>() { { id, wireTap } });
-        }
-        else
-        {
-            _wireTaps[channelName].Add(id, wireTap);
+            if (!_wireTaps.ContainsKey(channelName))
+            {
+                _wireTaps.Add(channelName, new Dictionary<WireTapId, IWireTapService.WireTap>() { { id, wireTap } });
+            }
+            else
+            {
+                _wireTaps[channelName].Add(id, wireTap);
+            }
+
+            _channelLookup.Add(id, channelName);
         }
 
-        _channelLookup.Add(id, channelName);
         return id;
     }
 
@@ -38,7 +42,10 @@ public class WiretapService : IWireTapService, IPreAction
     public void RemoveWireTap(WireTapId id)
     {
         string channel = _channelLookup[id];
-        _channelLookup.Remove(id);
-        _wireTaps[channel].Remove(id);
+        lock (this)
+        {
+            _channelLookup.Remove(id);
+            _wireTaps[channel].Remove(id);
+        }
     }
 }

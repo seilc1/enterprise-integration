@@ -10,8 +10,6 @@ namespace EnterpriseIntegration.Message
         public GenericMessage(IMessageHeaders headers, T? payload)
         {
             MessageHeaders = headers;
-            MessageHeaders.Id = Guid.NewGuid().ToString();
-            MessageHeaders.CreatedDate = DateTime.Now;
             Payload = payload;
             PayloadType = payload == null ? typeof(object) : payload.GetType();
         }

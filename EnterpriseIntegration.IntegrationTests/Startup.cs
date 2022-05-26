@@ -1,5 +1,7 @@
-﻿using EnterpriseIntegration.Tests.Examples;
+﻿using EnterpriseIntegration.TestCommon.Examples;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using Xunit.DependencyInjection.Logging;
 
 namespace EnterpriseIntegration.IntegrationTests
 {
@@ -9,9 +11,14 @@ namespace EnterpriseIntegration.IntegrationTests
         {
             services
                 .AddSingleton<ServiceActivatorFlow001>()
-                .AddSingleton<ExampleFlow002>()
-                .AddSingleton<RoutingFlow003>()
+                .AddSingleton<RoutingFlow002>()
+                .AddSingleton<SplitterAggregatorFlow003>()
                 .UseEnterpriseIntegration();
+        }
+
+        public void Configure(IServiceProvider provider)
+        {
+            XunitTestOutputLoggerProvider.Register(provider);
         }
     }
 }

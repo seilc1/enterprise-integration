@@ -81,7 +81,14 @@ namespace EnterpriseIntegration.Flow
 
         public Task Submit<T>(string channel, T payload)
         {
-            return Submit(channel, new MessageHeaders(), payload);
+            if (payload == null)
+            {
+                throw new ArgumentNullException(nameof(payload));
+            }
+
+            return payload.GetType().IsMessage() 
+                ? SendMessage(channel, (IMessage)payload)
+                : Submit(channel, new MessageHeaders(), payload);
         }
 
         public async Task Submit<T>(string channel, IMessageHeaders headers, T payload)

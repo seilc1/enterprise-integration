@@ -1,9 +1,16 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 namespace EnterpriseIntegration.Message
 {
     public class MessageHeaders : Dictionary<string, string>, IMessageHeaders
     {
+        public MessageHeaders()
+        {
+            this[HeaderFields.MessageId] = Guid.NewGuid().ToString();
+            this[HeaderFields.MessageCreateDate] = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
+        }
+
         public override string ToString()
         {
             StringBuilder stringBuilder = new StringBuilder();

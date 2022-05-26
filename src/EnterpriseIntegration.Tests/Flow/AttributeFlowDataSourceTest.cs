@@ -15,10 +15,10 @@ namespace EnterpriseIntegration.Tests.Flow
             var result = sut.GetAllMethodsWithIntegrationAttribute().ToList();
 
             result.Count().Should().BeGreaterThanOrEqualTo(4);
-            result.Should().ContainSingle(m => m.DeclaringType.Name == "ExampleFlow001" && m.Name == "Hello");
-            result.Should().ContainSingle(m => m.DeclaringType.Name == "ExampleFlow001" && m.Name == "World");
-            result.Should().ContainSingle(m => m.DeclaringType.Name == "ExampleFlow001" && m.Name == "Randomizer");
-            result.Should().ContainSingle(m => m.DeclaringType.Name == "ExampleFlow001" && m.Name == "End");
+            result.Should().ContainSingle(m => m.DeclaringType!.Name == "ExampleFlow001" && m.Name == "Hello");
+            result.Should().ContainSingle(m => m.DeclaringType!.Name == "ExampleFlow001" && m.Name == "World");
+            result.Should().ContainSingle(m => m.DeclaringType!.Name == "ExampleFlow001" && m.Name == "Randomizer");
+            result.Should().ContainSingle(m => m.DeclaringType!.Name == "ExampleFlow001" && m.Name == "End");
         }
 
         [Fact]
