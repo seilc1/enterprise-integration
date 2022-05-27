@@ -7,19 +7,24 @@ namespace EnterpriseIntegration.Flow
     {
         private static Type IMessageBaseType = typeof(IMessage<>).GetGenericTypeDefinition();
 
-        public static Type? ExpectedPayloadType(FlowNode flowNode)
+        public static Type ExpectedPayloadType(FlowNode flowNode)
         {
-            Type? type = ExpectedPayloadTypeForNoneRouter(flowNode);
+            Type type = ExpectedPayloadTypeForNoneRouter(flowNode);
 
             if (flowNode.NodeType == FlowNodeType.Router && type == typeof(VoidParameter))
             {
                 type = typeof(object);
             }
 
+            if (flowNode.NodeType == FlowNodeType.Aggregator && type.IsGenericType)
+            {
+                type = type.GetGenericArguments()[0];
+            }
+
             return type;
         }
 
-        private static Type? ExpectedPayloadTypeForNoneRouter(FlowNode flowNode)
+        private static Type ExpectedPayloadTypeForNoneRouter(FlowNode flowNode)
         {
             Type? result = null;
 

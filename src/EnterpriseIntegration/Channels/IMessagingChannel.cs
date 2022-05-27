@@ -9,10 +9,13 @@ namespace EnterpriseIntegration.Channels
     public interface IMessagingChannel
     {
         /// <summary>
-        ///     Sends a <see cref="IMessage{T}"/> to the channel, how the message is handled, depends on the implementation (Point-To-Point, Publish-Subscriber, ...).
+        ///     Sends a <see cref="IMessage"/> to the channel, how the message is handled, depends on the implementation (Point-To-Point, Publish-Subscriber, ...).
         /// </summary>
-        public Task Send<T>(IMessage<T> message);
+        public Task Send(IMessage message);
 
-        public Task Subscribe<T>(Action<IMessage<T>> subscriber);
+        /// <summary>
+        ///     Subscribe method, to add a new async subscriber to the channel.
+        /// </summary>
+        public Task Subscribe<T>(Func<IMessage<T>, Task> subscriber);
     }
 }

@@ -6,9 +6,15 @@
     /// </summary>
     public class ServiceActivatorAttribute : EnterpriseIntegrationAttribute
     {
+        public ServiceActivatorAttribute(string inChannelName, string outChannelName)
+            : base (inChannelName)
+        {
+            OutChannelName = outChannelName;
+        }
+
         /// <summary>
         /// Name of the next Channel the return value should be forwarded to.
         /// </summary>
-        public string OutChannelName { get; init; }
+        public string OutChannelName { get; }
     }
 }

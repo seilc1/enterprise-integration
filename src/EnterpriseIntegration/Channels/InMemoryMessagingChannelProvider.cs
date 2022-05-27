@@ -1,5 +1,4 @@
-﻿using EnterpriseIntegration.Message;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace EnterpriseIntegration.Channels
 {
@@ -15,6 +14,11 @@ namespace EnterpriseIntegration.Channels
         public IMessagingChannel GetMessagingChannel(string channelName)
         {
             return MessageChannels.GetOrAdd(channelName, CreateMessagingChannel());
+        }
+
+        public void Dispose()
+        {
+            MessageChannels.Clear();
         }
     }
 }

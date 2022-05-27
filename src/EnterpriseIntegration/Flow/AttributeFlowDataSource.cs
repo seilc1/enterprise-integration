@@ -22,35 +22,33 @@ namespace EnterpriseIntegration.Flow
 
         private static FlowNode ToFlowNode(MethodInfo methodInfo)
         {
-            var integrationAttribute = methodInfo.GetCustomAttributes().Single(a => a.GetType().IsSubclassOf(ROOT_TYPE));
+            EnterpriseIntegrationAttribute integrationAttribute = (EnterpriseIntegrationAttribute)methodInfo.GetCustomAttributes().Single(a => a.GetType().IsSubclassOf(ROOT_TYPE));
+            FlowNode baseNode = new FlowNode(methodInfo.Name, FlowNodeType.Undefined, integrationAttribute.InChannelName, methodInfo, integrationAttribute);
 
             switch (integrationAttribute)
             {
-                case ServiceActivatorAttribute attr:
-                    return new FlowNode()
+                case SplitterAttribute attr:
+                    return baseNode with
+                    { 
+                        NodeType = FlowNodeType.Splitter,
+                        OutChannelName = attr.OutChannelName
+                    };
+                case AggregatorAttribute attr:
+                    return baseNode with
                     {
-                        Name = methodInfo.Name,
-                        NodeType = FlowNodeType.Method,
-                        InChannelName = attr.InChannelName,
-                        OutChannelName = attr.OutChannelName,
-                        MethodInfo = methodInfo
+                        NodeType = FlowNodeType.Aggregator,
+                        OutChannelName = attr.OutChannelName
+                    };
+                case ServiceActivatorAttribute attr:
+                    return baseNode with
+                    {
+                        NodeType = FlowNodeType.ServiceActivator,
+                        OutChannelName = attr.OutChannelName
                     };
                 case EndpointAttribute attr:
-                    return new FlowNode()
-                    {
-                        Name = methodInfo.Name,
-                        NodeType = FlowNodeType.Terminator,
-                        InChannelName = attr.InChannelName,
-                        MethodInfo = methodInfo
-                    };
+                    return baseNode with { NodeType = FlowNodeType.Endpoint };
                 case RouterAttribute attr:
-                    return new FlowNode()
-                    {
-                        Name = methodInfo.Name,
-                        NodeType = FlowNodeType.Router,
-                        InChannelName = attr.InChannelName,
-                        MethodInfo = methodInfo
-                    };
+                    return baseNode with { NodeType = FlowNodeType.Router };
                 default:
                     throw new EnterpriseIntegrationException($"Unexpected attribute of type: {integrationAttribute.GetType()}");
             }

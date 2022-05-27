@@ -1,4 +1,5 @@
 ﻿using EnterpriseIntegration.Errors;
+using EnterpriseIntegration.Flow;
 using EnterpriseIntegration.Message;
 
 namespace EnterpriseIntegration.Channels
@@ -12,17 +13,34 @@ namespace EnterpriseIntegration.Channels
                 throw new EnterpriseIntegrationException($"param:{nameof(message)} must implement IMessage<T> but is of type:{message.GetType()}.");
             }
 
-            return GenericMessage<T>.From((IMessageMetaData)message, TransformPayload<T>(IMessage<object>.ReflectPayload(message)));
+            return GenericMessage<T>.From((IMessageMetaData)message, TransformPayload<T>(IMessage.ReflectPayload(message)));
         }
 
-        public static T TransformPayload<T>(object payload)
+        public static T? TransformPayload<T>(object payload)
         {
             if (payload == null)
             {
                 return default(T);
             }
 
-            return (T) Convert.ChangeType(payload, typeof(T));
+            if (typeof(T) == typeof(VoidParameter))
+            {
+                return default(T);
+            }
+
+            if (typeof(T) == typeof(object) || typeof(T) == payload.GetType())
+            {
+                return (T)payload;
+            }
+
+            try
+            {
+                return (T)Convert.ChangeType(payload, typeof(T));
+            }
+            catch (InvalidCastException ex)
+            {
+                throw ex;
+            }
         }
     }
 }
