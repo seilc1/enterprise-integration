@@ -15,7 +15,7 @@ namespace EnterpriseIntegration.LoadTests.Scenarios
 
         protected abstract string EndChannel { get; }
 
-        protected int CheckIntervalInMilliseconds { get; set; } = 1;
+        protected int CheckIntervalInMilliseconds { get; set; } = 0;
 
         protected int MaxWaitTimeInMilliseconds { get; set; } = 20;
 
@@ -53,10 +53,8 @@ namespace EnterpriseIntegration.LoadTests.Scenarios
 
             var scenario = ScenarioBuilder
                 .CreateScenario("SendAndWaitMessage", stepSendMessage)
-                .WithLoadSimulations(new [] { 
-                    LoadSimulation.NewRampConstant(1, TimeSpan.FromSeconds(1)),
-                    LoadSimulation.NewKeepConstant(100, TimeSpan.FromSeconds(20)) 
-                });
+                .WithWarmUpDuration(TimeSpan.FromSeconds(1))
+                .WithLoadSimulations(new [] { LoadSimulation.NewKeepConstant(Environment.ProcessorCount, TimeSpan.FromSeconds(60)) });
 
             NBomberRunner.RegisterScenarios(scenario).Run();
             WireTapService.RemoveWireTap(wireTapId);

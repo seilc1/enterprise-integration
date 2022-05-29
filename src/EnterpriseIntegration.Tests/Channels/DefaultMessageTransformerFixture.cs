@@ -8,7 +8,6 @@ namespace EnterpriseIntegration.Tests.Channels
     {
         public record ExampleRecord(string Name, int value);
 
-
         [Fact]
         public void TransformPayload_ShouldTransformObject_ToRecord()
         {

@@ -25,7 +25,8 @@ namespace EnterpriseIntegration
                 .AddSingleton<IFlowDataSource, AttributeFlowDataSource>()
                 .UseDefaultMessageProcessors()
                 .UseWireTap()
-                .AddSingleton<FlowEngine>();
+                .AddSingleton<FlowEngine>()
+                .AddSingleton<IMessageGateway>(x => x.GetRequiredService<FlowEngine>());
         }
 
         public static IServiceCollection UseDefaultMessageProcessors(this IServiceCollection serviceCollection)

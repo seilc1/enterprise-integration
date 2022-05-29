@@ -9,9 +9,9 @@ public class SplitterAggregatorFlow003
 {
     private const string ChannelPrefix = "003-";
     private const string SplitChannelPrefix = $"{ChannelPrefix}split-";
-    private const string SplitChannel1 = $"{SplitChannelPrefix}-001";
-    private const string SplitChannel2 = $"{SplitChannelPrefix}-002";
-    private const string SplitChannel3 = $"{SplitChannelPrefix}-003";
+    private const string SplitChannel1 = $"{SplitChannelPrefix}001";
+    private const string SplitChannel2 = $"{SplitChannelPrefix}002";
+    private const string SplitChannel3 = $"{SplitChannelPrefix}003";
     private readonly ILogger<SplitterAggregatorFlow003> _logger;
 
     public record Message(string RouteTo);

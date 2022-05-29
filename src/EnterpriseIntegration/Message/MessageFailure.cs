@@ -1,2 +1,2 @@
 ﻿namespace EnterpriseIntegration.Message;
-public record MessageFailure(object originalPayload, Exception exception);
+public record MessageFailure(IMessage OriginalMessage, Exception Exception);

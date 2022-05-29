@@ -2,7 +2,11 @@
 {
     public class EnterpriseIntegrationException : InvalidOperationException
     {
-        public EnterpriseIntegrationException(string message) : base(message)
+        internal EnterpriseIntegrationException(string message) : base(message)
+        {
+        }
+
+        internal EnterpriseIntegrationException(string message, Exception innerException) : base(message, innerException)
         {
         }
     }

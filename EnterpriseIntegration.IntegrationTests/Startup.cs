@@ -13,6 +13,7 @@ namespace EnterpriseIntegration.IntegrationTests
                 .AddSingleton<ServiceActivatorFlow001>()
                 .AddSingleton<RoutingFlow002>()
                 .AddSingleton<SplitterAggregatorFlow003>()
+                .AddSingleton<ErrorFlow>()
                 .UseEnterpriseIntegration();
         }
 
