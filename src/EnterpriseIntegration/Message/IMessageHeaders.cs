@@ -44,6 +44,15 @@ namespace EnterpriseIntegration.Message
         }
 
         /// <summary>
+        ///     Name of the <see cref="Channels.IMessagingChannel"/> to which the message should be forwarded, if an exception in the flow happens.
+        /// </summary>
+        public IMessageHeaders WithErrorChannel(string errorChannel)
+        {
+            ErrorChannel = errorChannel;
+            return this;
+        }
+
+        /// <summary>
         ///     By setting this field and sending a message to the channel: <see cref="Channels.EngineChannels.RouteByHeaderChannel"/> the message will be forwarded to
         ///     the defined channel.
         /// </summary>

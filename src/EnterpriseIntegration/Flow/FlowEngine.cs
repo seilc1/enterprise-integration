@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace EnterpriseIntegration.Flow
 {
-    public class FlowEngine : IDisposable
+    public class FlowEngine : IMessageGateway, IDisposable
     {
         private readonly ILogger<FlowEngine> _logger;
         private readonly IFlowDataSource _flowDataSource;
@@ -52,7 +52,7 @@ namespace EnterpriseIntegration.Flow
         [Endpoint(inChannelName: EngineChannels.DefaultErrorChannel)]
         public void ErrorChannel(IMessage<MessageFailure> exceptionWithMessage)
         {
-            _logger.LogError(exceptionWithMessage.Payload.exception, "Error occured with message:{Message} and payload:{Payload}.", exceptionWithMessage, exceptionWithMessage.Payload.originalPayload);
+            _logger.LogError(exceptionWithMessage.Payload.Exception, "Error occured with message:{Message} and payload:{Payload}.", exceptionWithMessage, exceptionWithMessage.Payload.OriginalMessage);
         }
 
         [Router(inChannelName: EngineChannels.RouteByHeaderChannel)]
@@ -73,22 +73,22 @@ namespace EnterpriseIntegration.Flow
             _subscriptions.Add(new ChannelSubscription<T>(this, flowNode, channel));
         }
 
-        private Task SendMessage(string channel, IMessage message)
+        public Task SendMessage(string channel, IMessage message)
         {
             _logger.LogDebug("SendMessage({Channel}, {Message})", channel, message);
             return _messagingChannelProvider.GetMessagingChannel(channel).Send(message);
         }
 
-        public Task Submit<T>(string channel, T payload)
+        public Task Submit<T>(string channel, T messageOrPayload)
         {
-            if (payload == null)
+            if (messageOrPayload == null)
             {
-                throw new ArgumentNullException(nameof(payload));
+                throw new ArgumentNullException(nameof(messageOrPayload));
             }
 
-            return payload.GetType().IsMessage() 
-                ? SendMessage(channel, (IMessage)payload)
-                : Submit(channel, new MessageHeaders(), payload);
+            return messageOrPayload.GetType().IsMessage() 
+                ? SendMessage(channel, (IMessage)messageOrPayload)
+                : Submit(channel, new MessageHeaders(), messageOrPayload);
         }
 
         public async Task Submit<T>(string channel, IMessageHeaders headers, T payload)
@@ -101,9 +101,36 @@ namespace EnterpriseIntegration.Flow
             _subscriptions.Clear();
         }
 
-        public async Task ExecutePreActions<T>(FlowNode flowNode, IMessage<T> message)
+        private async Task ExecutePreActions<T>(FlowNode flowNode, IMessage<T> message)
         {
             await Task.WhenAll(_preActions.Select(a => a.PreProcess(flowNode, message)));
+        }
+
+        public Task SendPayload<T>(string channel, T payload)
+        {
+            return SendPayload<T>(channel, new MessageHeaders(), payload);
+        }
+
+        public async Task SendPayload<T>(string channel, IMessageHeaders headers, T payload)
+        {
+            await SendMessage(channel, new GenericMessage<T>(headers, payload));
+        }
+
+        private async Task HandleException(Exception ex, IMessage message, FlowNode flowNode)
+        {
+            Exception reasonOfError = ex;
+            if (ex is TargetInvocationException && ex.InnerException != null)
+            {
+                reasonOfError = ex.InnerException;
+            }
+
+            PayloadTransformationException? payloadTransformationException = reasonOfError as PayloadTransformationException;
+            if (payloadTransformationException != null)
+            {
+                reasonOfError = new PayloadTransformationException(payloadTransformationException.ReceivedType, payloadTransformationException.MethodParameterType, flowNode.OutChannelName!);
+            }
+
+            await SendMessage(message.MessageHeaders.ErrorChannel ?? EngineChannels.DefaultErrorChannel, GenericMessage<MessageFailure>.From(message, new MessageFailure(message, reasonOfError)));
         }
 
         /// <summary>
@@ -134,10 +161,18 @@ namespace EnterpriseIntegration.Flow
                 Func<IMessage<T>, FlowNode, SendMessageAsync, Task<IEnumerable<IMessage>>> processor = _engine._messageProcessors[_flowNode.NodeType].Process;
                 return async msg =>
                 {
-                    await _engine.ExecutePreActions(_flowNode, msg);
-                    await processor(msg, _flowNode, _engine.SendMessage);
+                    try
+                    {
+                        await _engine.ExecutePreActions(_flowNode, msg);
+                        await processor(msg, _flowNode, _engine.SendMessage);
+                    } 
+                    catch (Exception ex)
+                    {
+                        await _engine.HandleException(ex, msg, _flowNode);
+                    }
                 };
             }
+
         }
     }
 }

@@ -145,11 +145,57 @@ to the next endpoint.
 
 # Errors
 
+## Immediate Error Handling
+
+If an Error/Exception happens immediately after handing a Message is pushed through the MessageGateway the Exception will be thrown to the calling Thread/Method.
+As soon as the first receiver handled the message, or the message has been pushed to an external channel (Kafka, RabbitMQ...) the flow handles the exception by forwarding
+it to the error channel.
+
+## Flow Error Handling / Error Channel
+
+If an Error/Exception happens during the flow, the FlowEngine catches the exception and forwards it to an error channel. The error channel can be defined via the 
+message headers - if no error channel is defined, the default error channel is used; with the behaviour to log the exception.
+
+## Common Errors
+
 Common Errors and how to fix them:
 
 | Exception | How to solve |
 | :--- | :--- |
 | TooManyPayloadParameters | The method used as a flow node receiver has too many "payload" parameters. A method should have only one `value` parameter, which could be either any type or a parameter of type `IMessage<>`. In addition it is possible to have an `IMessageHeaders` injected. |
-
+| PayloadTransformation | The payload of a message did not match the parameter defined in the receiving method. Change the return type of the sending message, or change the parameter of the receiving message |
 
 # Architecture
+
+
+# Tests
+
+## Unit Tests
+
+## Integration Tests
+
+## Load Tests
+
+Load Tests are setup with [NBomber](https://nbomber.com/) to run scenarios and measure their execution time. To make the starting
+and usage of the console app, the Framework [Cocona](https://github.com/mayuki/Cocona) has been used, to give a nice CLI feeling.
+
+### Publish Load Tests
+
+To run the Load tests the must be published
+
+```Powershell
+# generating a OS agnostic output
+mkdir loadtests
+cd loadtests
+dotnet publish ..\tests\EnterpriseIntegration.LoadTests --output .
+```
+
+### Run Load Tests
+
+To execute the Load tests the published artifact can be started with a scenario parameter.
+```Powershell
+# running load test for simple scenario
+EnterpriseIntegration.LoadTests.exe --scenario Simple
+```
+
+the report is by default generated into the folder _reports_
