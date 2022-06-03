@@ -3,22 +3,26 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnterpriseIntegration", "src\EnterpriseIntegration\EnterpriseIntegration.csproj", "{92F73053-16EF-4403-BCB5-E385D9823DEC}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{7107F12F-6777-4FA4-B4E4-8EC6D7D122C9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnterpriseIntegration.Tests", "src\EnterpriseIntegration.Tests\EnterpriseIntegration.Tests.csproj", "{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{6FBF2D87-8948-4FBB-8A3F-A3B5579ADE2A}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnterpriseIntegration.IntegrationTests", "EnterpriseIntegration.IntegrationTests\EnterpriseIntegration.IntegrationTests.csproj", "{D5B4C86D-24BA-4EE7-9F56-6C9B3D87EF29}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnterpriseIntegration", "src\EnterpriseIntegration\EnterpriseIntegration.csproj", "{92F73053-16EF-4403-BCB5-E385D9823DEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnterpriseIntegration.LoadTests", "tests\EnterpriseIntegration.LoadTests\EnterpriseIntegration.LoadTests.csproj", "{A8796EB2-FE2E-424D-A261-E0CCB128219F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnterpriseIntegation.RabbitMQ", "src\EnterpriseIntegation.RabbitMQ\EnterpriseIntegation.RabbitMQ.csproj", "{371428BB-D8D4-4F66-A4F8-C479FA8E5B16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnterpriseIntegration.TestCommon", "tests\EnterpriseIntegration.TestCommon\EnterpriseIntegration.TestCommon.csproj", "{1327139C-EC44-4D62-8C2F-3487852DAC1F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{7107F12F-6777-4FA4-B4E4-8EC6D7D122C9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnterpriseIntegration.TestCommon", "tests\EnterpriseIntegration.TestCommon\EnterpriseIntegration.TestCommon.csproj", "{1327139C-EC44-4D62-8C2F-3487852DAC1F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnterpriseIntegration.IntegrationTests", "tests\EnterpriseIntegration.IntegrationTests\EnterpriseIntegration.IntegrationTests.csproj", "{D5B4C86D-24BA-4EE7-9F56-6C9B3D87EF29}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnterpriseIntegration.LoadTests", "tests\EnterpriseIntegration.LoadTests\EnterpriseIntegration.LoadTests.csproj", "{A8796EB2-FE2E-424D-A261-E0CCB128219F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnterpriseIntegration.Tests", "tests\EnterpriseIntegration.Tests\EnterpriseIntegration.Tests.csproj", "{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnterpriseIntegration.RabbitMQ.Tests", "tests\EnterpriseIntegration.RabbitMQ.Tests\EnterpriseIntegration.RabbitMQ.Tests.csproj", "{23D63925-F6F2-4751-AE6E-45693B67D097}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,10 +34,10 @@ Global
 		{92F73053-16EF-4403-BCB5-E385D9823DEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92F73053-16EF-4403-BCB5-E385D9823DEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92F73053-16EF-4403-BCB5-E385D9823DEC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1327139C-EC44-4D62-8C2F-3487852DAC1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1327139C-EC44-4D62-8C2F-3487852DAC1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1327139C-EC44-4D62-8C2F-3487852DAC1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1327139C-EC44-4D62-8C2F-3487852DAC1F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D5B4C86D-24BA-4EE7-9F56-6C9B3D87EF29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D5B4C86D-24BA-4EE7-9F56-6C9B3D87EF29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5B4C86D-24BA-4EE7-9F56-6C9B3D87EF29}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -42,19 +46,28 @@ Global
 		{A8796EB2-FE2E-424D-A261-E0CCB128219F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8796EB2-FE2E-424D-A261-E0CCB128219F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8796EB2-FE2E-424D-A261-E0CCB128219F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1327139C-EC44-4D62-8C2F-3487852DAC1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1327139C-EC44-4D62-8C2F-3487852DAC1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1327139C-EC44-4D62-8C2F-3487852DAC1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1327139C-EC44-4D62-8C2F-3487852DAC1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{371428BB-D8D4-4F66-A4F8-C479FA8E5B16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{371428BB-D8D4-4F66-A4F8-C479FA8E5B16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{371428BB-D8D4-4F66-A4F8-C479FA8E5B16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{371428BB-D8D4-4F66-A4F8-C479FA8E5B16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23D63925-F6F2-4751-AE6E-45693B67D097}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23D63925-F6F2-4751-AE6E-45693B67D097}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23D63925-F6F2-4751-AE6E-45693B67D097}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23D63925-F6F2-4751-AE6E-45693B67D097}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1} = {7107F12F-6777-4FA4-B4E4-8EC6D7D122C9}
+		{1327139C-EC44-4D62-8C2F-3487852DAC1F} = {7107F12F-6777-4FA4-B4E4-8EC6D7D122C9}
 		{D5B4C86D-24BA-4EE7-9F56-6C9B3D87EF29} = {7107F12F-6777-4FA4-B4E4-8EC6D7D122C9}
 		{A8796EB2-FE2E-424D-A261-E0CCB128219F} = {7107F12F-6777-4FA4-B4E4-8EC6D7D122C9}
-		{1327139C-EC44-4D62-8C2F-3487852DAC1F} = {7107F12F-6777-4FA4-B4E4-8EC6D7D122C9}
+		{D40DB93C-E1C5-41A8-8ABF-52CBF68FE0A1} = {7107F12F-6777-4FA4-B4E4-8EC6D7D122C9}
+		{23D63925-F6F2-4751-AE6E-45693B67D097} = {7107F12F-6777-4FA4-B4E4-8EC6D7D122C9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C0C48387-434F-40A0-A87A-87B3D1653E60}

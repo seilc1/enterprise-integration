@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\EnterpriseIntegration\EnterpriseIntegration.csproj" />
-    <ProjectReference Include="..\tests\EnterpriseIntegration.TestCommon\EnterpriseIntegration.TestCommon.csproj" />
+    <ProjectReference Include="..\..\src\EnterpriseIntegration\EnterpriseIntegration.csproj" />
+    <ProjectReference Include="..\EnterpriseIntegration.TestCommon\EnterpriseIntegration.TestCommon.csproj" />
   </ItemGroup>
 
 </Project>

@@ -11,6 +11,14 @@ namespace EnterpriseIntegration.Message
             this[HeaderFields.MessageCreateDate] = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
         }
 
+        public MessageHeaders(IDictionary<string, string> data)
+        {
+            foreach (var entry in data)
+            {
+                this[entry.Key] = entry.Value;
+            }
+        }
+
         public override string ToString()
         {
             StringBuilder stringBuilder = new StringBuilder();
