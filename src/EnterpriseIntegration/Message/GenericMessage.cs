@@ -1,20 +1,18 @@
-﻿using System.Diagnostics;
-
-namespace EnterpriseIntegration.Message
+﻿namespace EnterpriseIntegration.Message
 {
     public record GenericMessage<T> : IMessage<T>
     {
         public GenericMessage(T payload) : this(new MessageHeaders(), payload)
         { }
 
-        public GenericMessage(IMessageHeaders headers, T? payload)
+        public GenericMessage(IMessageHeaders headers, T payload)
         {
             MessageHeaders = headers;
             Payload = payload;
             PayloadType = payload == null ? typeof(object) : payload.GetType();
         }
 
-        public T? Payload { get; init; }
+        public T Payload { get; }
 
         public Dictionary<string, object> MessageBag { get; init; } = new Dictionary<string, object>();
 
@@ -22,7 +20,7 @@ namespace EnterpriseIntegration.Message
 
         public Type PayloadType { get; init; }
 
-        object IMessage.Payload => Payload;
+        object IMessage.Payload => Payload!;
 
         public static GenericMessage<T> From(IMessageMetaData metaData, T? payload)
         {

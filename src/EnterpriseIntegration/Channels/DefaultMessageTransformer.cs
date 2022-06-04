@@ -1,11 +1,19 @@
 ﻿using EnterpriseIntegration.Errors;
 using EnterpriseIntegration.Flow;
 using EnterpriseIntegration.Message;
+using System.Text;
+using System.Text.Json;
 
 namespace EnterpriseIntegration.Channels
 {
     public class DefaultMessageTransformer : IMessageTransformer
     {
+        private readonly Encoding _encoding = System.Text.Encoding.UTF8;
+
+        public string Encoding => _encoding.EncodingName;
+
+        public string ContentType => "application/json";
+
         public IMessage<T> TransformMessage<T>(object message)
         {
             if (!message.GetType().IsMessage())
@@ -40,6 +48,30 @@ namespace EnterpriseIntegration.Channels
             catch (InvalidCastException)
             {
                 throw new PayloadTransformationException(payload.GetType(), typeof(T));
+            }
+        }
+
+        public async Task<T> Deserialize<T>(ReadOnlyMemory<byte> payload)
+        {
+            using (MemoryStream stream = new MemoryStream(payload.ToArray()))
+            {
+                T? result = await JsonSerializer.DeserializeAsync<T>(stream);
+
+                if (result == null)
+                {
+                    throw new EnterpriseIntegrationException($"failed to deserialize payload.");
+                }
+
+                return result;
+            }
+        }
+
+        public async Task<ReadOnlyMemory<byte>> Serialize(object payload)
+        {
+            using (MemoryStream outStream = new MemoryStream())
+            {
+                await JsonSerializer.SerializeAsync(outStream, payload);
+                return outStream.ToArray();
             }
         }
     }

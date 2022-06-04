@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -8,8 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Ductus.FluentDocker.XUnit" Version="2.10.48" />
     <PackageReference Include="FluentAssertions" Version="6.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.3.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="Xunit.DependencyInjection" Version="8.5.0" />
     <PackageReference Include="Xunit.DependencyInjection.Logging" Version="8.0.1" />
@@ -24,8 +27,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\EnterpriseIntegration\EnterpriseIntegration.csproj" />
-    <ProjectReference Include="..\tests\EnterpriseIntegration.TestCommon\EnterpriseIntegration.TestCommon.csproj" />
+    <ProjectReference Include="..\..\src\EnterpriseIntegation.RabbitMQ\EnterpriseIntegation.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\src\EnterpriseIntegration\EnterpriseIntegration.csproj" />
+    <ProjectReference Include="..\EnterpriseIntegration.TestCommon\EnterpriseIntegration.TestCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
