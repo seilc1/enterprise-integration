@@ -136,13 +136,51 @@ _wireTapService.RemoveWireTap(id);
 * Send Return-Value to Defined-OutChannel
 
 ## Channels
-see: [EIP: Messaging Channels](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessagingChannelsIntro.html)
+
+[EIP: Messaging Channels](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessagingChannelsIntro.html) are responsible to transport messages between the
+different components of the Enterprise Integration Pattern. The default channel used, is an InMemoryChannel invoking other components in the same application. By replacing
+such a channel with another implementations (e.g. RabbitMQ), distribution of different applications can be achieved.
 
 ### PointToPointDirectMessagingChannel
 see: [EIP: Point to Point Channel](https://www.enterpriseintegrationpatterns.com/patterns/messaging/PointToPointChannel.html)
 
 Is an InMemory Channel allowing to connect two endpoints with eachother. The channel is One-to-One connection, directly moving the return value of one endpoint
 to the next endpoint.
+
+### RabbitMQChannel (AMQP)
+
+Provides a simple channel implementation using [RabbitMQ](https://www.rabbitmq.com/).
+
+Registration of RabbitMQ
+```C#
+using EnterpriseIntegation.RabbitMQ;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.IO;
+
+namespace EnterpriseIntegration.RabbitMQ.Tests;
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        IConfigurationBuilder configBuilder = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json");
+        IConfiguration config = configBuilder.Build();
+
+        services
+            .AddSingleton<ServiceActivatorFlow001>()
+            // Enable RabbitMQ Messaging based on json config
+            .WithRabbitMQMessaging(config)
+            // Provide the channel "001_world" via RabbitMQ
+            .WithRabbitMQChannel("001_world")
+            .UseEnterpriseIntegration();
+    }
+}
+```
+
+The Registration of a RabbitMQChannel can be configured with additional parameters of the registration method.
 
 # Errors
 

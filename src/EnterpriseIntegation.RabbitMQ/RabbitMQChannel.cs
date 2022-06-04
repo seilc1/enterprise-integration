@@ -91,6 +91,11 @@ namespace EnterpriseIntegation.RabbitMQ
             consumer.Received += async (_, ea) =>
             {
                 await subscriber(new GenericMessage<T>(GetHeaders(ea.BasicProperties), await _transformer.Deserialize<T>(ea.Body)));
+
+                if (!_settings.AutoAcknowledge)
+                {
+                    _queue.Value.BasicAck(ea.DeliveryTag, false);
+                }
             };
 
             return consumer;
