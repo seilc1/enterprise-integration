@@ -9,6 +9,13 @@ namespace EnterpriseIntegration.Channels
 
         private static IMessageTransformer _transformer = new DefaultMessageTransformer();
 
+        public ChannelId ChannelId { get; }
+
+        public PointToPointDirectMessagingChannel(ChannelId id)
+        {
+            ChannelId = id;
+        }
+
         public async Task Send(IMessage message)
         {
             if (_subscriber != null)

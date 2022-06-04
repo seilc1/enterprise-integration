@@ -23,6 +23,7 @@ namespace EnterpriseIntegration
                 .AddSingleton<IMessagingChannelProvider, InMemoryMessagingChannelProvider>()
                 .AddSingleton<IMessageStore, InMemoryMessageStore>()
                 .AddSingleton<IFlowDataSource, AttributeFlowDataSource>()
+                .AddSingleton<IMessageTransformer, DefaultMessageTransformer>()
                 .UseDefaultMessageProcessors()
                 .UseWireTap()
                 .AddSingleton<FlowEngine>()

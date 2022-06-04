@@ -1,30 +1,29 @@
 using Ductus.FluentDocker.Services;
 using EnterpriseIntegation.RabbitMQ;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
-using System.Text;
-using Xunit;
 
 namespace EnterpriseIntegration.RabbitMQ.Tests
 {
-    public abstract class RabbitMQFixture : IDisposable
+    public sealed class RabbitMQFixture : IDisposable
     {
-        protected IContainerService Container { get; private set; }
+        private IContainerService Container { get; set; }
 
         private const string RabbitMQUser = "rabbit_mq_test";
+
         private const string RabbitMQPassword = "rabbit_mq_p@ssw0rd";
 
-        protected RabbitMQSettings Settings => new RabbitMQSettings
+        public RabbitMQSettings Settings => new RabbitMQSettings
         {
             Hostname = "127.0.0.1",
             Username = RabbitMQUser,
             Password = RabbitMQPassword
         };
 
-        protected ConnectionFactory ConnectionFactory { get; init; }
+        private ConnectionFactory ConnectionFactory { get; init; }
 
-        protected RabbitMQFixture()
+        public RabbitMQFixture()
         {
             Container = new Ductus.FluentDocker.Builders.Builder()
                 .UseContainer()
@@ -42,16 +41,17 @@ namespace EnterpriseIntegration.RabbitMQ.Tests
 
         public void Dispose()
         {
-            if (_connection != null)
+            if (_rabbitMQConnectionProvider != null)
             {
-                _connection.Dispose();
+                _rabbitMQConnectionProvider.Dispose();
             }
+
 
             Container.Dispose();
         }
 
-        private IConnection? _connection;
+        private IRabbitMQConnectionProvider? _rabbitMQConnectionProvider;
 
-        protected IConnection Connection => _connection ?? (_connection = ConnectionFactory.CreateConnection());
+        public IRabbitMQConnectionProvider ConnectionProvider => _rabbitMQConnectionProvider ?? (_rabbitMQConnectionProvider = new RabbitMQConnectionProvider(new OptionsWrapper<RabbitMQSettings>(Settings)));
     }
 }

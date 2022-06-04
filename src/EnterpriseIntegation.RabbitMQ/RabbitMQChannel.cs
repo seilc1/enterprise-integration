@@ -9,9 +9,7 @@ namespace EnterpriseIntegation.RabbitMQ
 {
     public class RabbitMQChannel : IMessagingChannel, IDisposable
     {
-        private readonly IConnection _connection;
-
-        private readonly string _queueName;
+        private readonly IRabbitMQConnectionProvider _connectionProvider;
 
         private readonly RabbitMQChannelSettings _settings;
 
@@ -23,12 +21,15 @@ namespace EnterpriseIntegation.RabbitMQ
 
         public bool HasSubscriber { get; private set; }
 
-        public RabbitMQChannel(IConnection connection, string queueName, IMessageTransformer transformer) : this(connection, queueName, new RabbitMQChannelSettings(), transformer) { }
+        public ChannelId ChannelId { get; init; }
 
-        public RabbitMQChannel(IConnection connection, string queueName, RabbitMQChannelSettings settings, IMessageTransformer transformer)
+        public RabbitMQChannel(ChannelId id, IRabbitMQConnectionProvider connectionProvider, IMessageTransformer transformer) 
+            : this(id, connectionProvider, new RabbitMQChannelSettings(id.ToString()), transformer) { }
+
+        public RabbitMQChannel(ChannelId id, IRabbitMQConnectionProvider connectionProvider, RabbitMQChannelSettings settings, IMessageTransformer transformer)
         {
-            _connection = connection;
-            _queueName = queueName;
+            ChannelId = id;
+            _connectionProvider = connectionProvider;
             _settings = settings;
             _transformer = transformer;
             _queue = new Lazy<IModel>(CreateQueue);
@@ -36,8 +37,8 @@ namespace EnterpriseIntegation.RabbitMQ
 
         private IModel CreateQueue()
         {
-            IModel channel = _connection.CreateModel();
-            channel.QueueDeclare(queue: _queueName,
+            IModel channel = _connectionProvider.Connection.CreateModel();
+            channel.QueueDeclare(queue: _settings.QueueName,
                                      durable: _settings.Durable,
                                      exclusive: _settings.Exclusive,
                                      autoDelete: _settings.AutoDelete,
@@ -53,7 +54,7 @@ namespace EnterpriseIntegation.RabbitMQ
                 var channel = _queue.Value;
                 channel.BasicPublish(
                     exchange: _settings.Exchange,
-                    routingKey: _queueName,
+                    routingKey: _settings.QueueName,
                     mandatory: _settings.Mandatory,
                     basicProperties: AsBasicProperties(channel, message.MessageHeaders, message.PayloadType),
                     body: payload);
@@ -79,25 +80,20 @@ namespace EnterpriseIntegation.RabbitMQ
             {
                 throw new EnterpriseIntegrationException($"{nameof(PointToPointDirectMessagingChannel)} only supports a single subscriber.");
             }
+            HasSubscriber = true;
 
-            return Task.Run(() =>
-            {
-                var queue = _queue.Value;
-                var consumer = new EventingBasicConsumer(_queue.Value);
-                consumer.Received += async (_, ea) =>
-                {
-                    T payload = await _transformer.Deserialize<T>(ea.Body);
-                    await subscriber(new GenericMessage<T>(GetHeaders(ea.BasicProperties), payload));
-                };
-
-                queue.BasicConsume(_queueName, _settings.AutoAcknowledge, consumer);
-                HasSubscriber = true;
-            });
+            return Task.Run(() => _queue.Value.BasicConsume(_settings.QueueName, _settings.AutoAcknowledge, Consumer(subscriber)));
         }
 
-        private Task HandleMessage<T>(BasicDeliverEventArgs data, Func<IMessage<T>, Task> subscriber)
+        private AsyncDefaultBasicConsumer Consumer<T>(Func<IMessage<T>, Task> subscriber)
         {
-            return Task.CompletedTask;
+            var consumer = new AsyncEventingBasicConsumer(_queue.Value);
+            consumer.Received += async (_, ea) =>
+            {
+                await subscriber(new GenericMessage<T>(GetHeaders(ea.BasicProperties), await _transformer.Deserialize<T>(ea.Body)));
+            };
+
+            return consumer;
         }
 
         private MessageHeaders GetHeaders(IBasicProperties messageProperties)

@@ -9,6 +9,15 @@ namespace EnterpriseIntegration.Channels
     public interface IMessagingChannel
     {
         /// <summary>
+        ///     Id of the Enterprise Integration Channel.
+        /// </summary>
+        /// <remarks>
+        ///     This might vary from the Name the Channel/Queue/Topic has in the Implementation and is solely used
+        ///     by the Enterprise Integration Framework to match the channel.
+        /// </remarks>
+        public ChannelId ChannelId { get; }
+
+        /// <summary>
         ///     Sends a <see cref="IMessage"/> to the channel, how the message is handled, depends on the implementation (Point-To-Point, Publish-Subscriber, ...).
         /// </summary>
         public Task Send(IMessage message);

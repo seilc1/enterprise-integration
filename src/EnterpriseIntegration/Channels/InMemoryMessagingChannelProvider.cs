@@ -4,16 +4,21 @@ namespace EnterpriseIntegration.Channels
 {
     public class InMemoryMessagingChannelProvider : IMessagingChannelProvider
     {
-        private ConcurrentDictionary<string, IMessagingChannel> MessageChannels { get; init; } = new ConcurrentDictionary<string, IMessagingChannel>();
+        private ConcurrentDictionary<ChannelId, IMessagingChannel> MessageChannels { get; init; }
 
-        private static IMessagingChannel CreateMessagingChannel()
+        public InMemoryMessagingChannelProvider(IEnumerable<IMessagingChannel> preDefinedChannels)
         {
-            return new PointToPointDirectMessagingChannel();
+            MessageChannels = new ConcurrentDictionary<ChannelId, IMessagingChannel>(preDefinedChannels.Select(e => KeyValuePair.Create(e.ChannelId, e)));
         }
 
-        public IMessagingChannel GetMessagingChannel(string channelName)
+        private static IMessagingChannel CreateMessagingChannel(ChannelId channelId)
         {
-            return MessageChannels.GetOrAdd(channelName, CreateMessagingChannel());
+            return new PointToPointDirectMessagingChannel(channelId);
+        }
+
+        public IMessagingChannel GetMessagingChannel(ChannelId channelId)
+        {
+            return MessageChannels.GetOrAdd(channelId, CreateMessagingChannel(channelId));
         }
 
         public void Dispose()

@@ -2,6 +2,13 @@
 
 public class RabbitMQChannelSettings
 {
+    public RabbitMQChannelSettings(string queueName)
+    {
+        QueueName = queueName;
+    }
+
+    public string QueueName { get; set; }
+
     public bool Durable { get; set; } = false;
 
     public bool Exclusive { get; set; } = false;

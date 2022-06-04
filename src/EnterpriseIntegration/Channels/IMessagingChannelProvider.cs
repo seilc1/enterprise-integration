@@ -8,5 +8,5 @@ public interface IMessagingChannelProvider : IDisposable
     /// <summary>
     ///     Gets or Creates a <see cref="IMessagingChannel"/> for a channel name.
     /// </summary>
-    public IMessagingChannel GetMessagingChannel(string channelName);
+    public IMessagingChannel GetMessagingChannel(ChannelId channelId);
 }
