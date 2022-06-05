@@ -1,4 +1,5 @@
-﻿using EnterpriseIntegration.Components.Aggregator;
+﻿using EnterpriseIntegration.Channels;
+using EnterpriseIntegration.Components.Aggregator;
 
 namespace EnterpriseIntegration.Attributes
 {
@@ -8,7 +9,7 @@ namespace EnterpriseIntegration.Attributes
     /// <see href="https://www.enterpriseintegrationpatterns.com/patterns/messaging/Aggregator.html">EIP: Aggregator</see>
     public class AggregatorAttribute : ServiceActivatorAttribute
     {
-        public AggregatorAttribute(string inChannelName, string outChannelName) : base(inChannelName, outChannelName) { }
+        public AggregatorAttribute(string inChannelId, string outChannelId) : base(inChannelId, outChannelId) { }
 
         /// <summary>
         ///     Defines the Maximum <see cref="TimeSpan"/> the aggregator should wait until executing the <see cref="MaxWaitAfterFirstMessageStrategy"/>.

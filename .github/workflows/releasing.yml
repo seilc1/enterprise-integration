@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - 'master'
+
+env:
+    project: "src/EnterpriseIntegration"
+    rabbitmq_project: "src/EnterpriseIntegration.RabbitMQ"
+    latest_dotnet_version: "6.x"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK ${{ env.latest_dotnet_version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.latest_dotnet_version }}
+      - name: Install dependencies
+        run: dotnet restore $project
+      - name: Build
+        run: dotnet build $project --no-restore --configuration Release
+      - name: Publish the package to nuget.org
+        run: dotnet nuget push */bin/Release/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}
+
+  release_rabbitmq:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK ${{ env.latest_dotnet_version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.latest_dotnet_version }}
+      - name: Install dependencies
+        run: dotnet restore $rabbitmq_project
+      - name: Build
+        run: dotnet build $rabbitmq_project --no-restore --configuration Release
+      - name: Publish the package to nuget.org
+        run: dotnet nuget push */bin/Release/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}

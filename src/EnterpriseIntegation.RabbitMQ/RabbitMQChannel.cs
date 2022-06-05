@@ -78,7 +78,7 @@ namespace EnterpriseIntegation.RabbitMQ
         {
             if (HasSubscriber)
             {
-                throw new EnterpriseIntegrationException($"{nameof(PointToPointDirectMessagingChannel)} only supports a single subscriber.");
+                throw new EnterpriseIntegrationException($"{nameof(InMemoryChannel)} only supports a single subscriber.");
             }
             HasSubscriber = true;
 

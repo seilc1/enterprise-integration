@@ -3,7 +3,7 @@ using EnterpriseIntegration.Message;
 
 namespace EnterpriseIntegration.Channels
 {
-    public class PointToPointDirectMessagingChannel : IMessagingChannel
+    public class InMemoryChannel : IMessagingChannel
     {
         private Func<IMessage, Task>? _subscriber;
 
@@ -11,7 +11,7 @@ namespace EnterpriseIntegration.Channels
 
         public ChannelId ChannelId { get; }
 
-        public PointToPointDirectMessagingChannel(ChannelId id)
+        public InMemoryChannel(ChannelId id)
         {
             ChannelId = id;
         }
@@ -28,7 +28,7 @@ namespace EnterpriseIntegration.Channels
         {
             if (_subscriber != null)
             {
-                throw new EnterpriseIntegrationException($"{nameof(PointToPointDirectMessagingChannel)} only supports a single subscriber.");
+                throw new EnterpriseIntegrationException($"{nameof(InMemoryChannel)} only supports a single subscriber.");
             }
 
             _subscriber = msg => subscriber.Invoke(_transformer.TransformMessage<T>(msg));

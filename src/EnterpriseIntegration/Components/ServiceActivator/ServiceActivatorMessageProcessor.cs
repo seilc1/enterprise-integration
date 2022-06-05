@@ -1,4 +1,5 @@
-﻿using EnterpriseIntegration.Flow;
+﻿using EnterpriseIntegration.Channels;
+using EnterpriseIntegration.Flow;
 using EnterpriseIntegration.Flow.MessageProcessing;
 using EnterpriseIntegration.Message;
 
@@ -16,7 +17,7 @@ namespace EnterpriseIntegration.Components.ServiceActivator
         {
             object? result = InvokeFlowNodeMethod(message, flowNode);
             IMessage resultMessage = AsMessage(message, result);
-            await messageSender(flowNode.OutChannelName!, resultMessage);
+            await messageSender((ChannelId)flowNode.OutChannelId!, resultMessage);
 
             return new [] { resultMessage };
         }

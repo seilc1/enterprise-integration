@@ -1,29 +1,30 @@
-﻿using EnterpriseIntegration.Components.PreActions;
+﻿using EnterpriseIntegration.Channels;
+using EnterpriseIntegration.Components.PreActions;
 using EnterpriseIntegration.Flow;
 using EnterpriseIntegration.Message;
 
 namespace EnterpriseIntegration.Components.Wiretap;
 public class WiretapService : IWireTapService, IPreAction
 {
-    private Dictionary<string, Dictionary<WireTapId, IWireTapService.WireTap>> _wireTaps = new();
-    private Dictionary<WireTapId, string> _channelLookup = new();
+    private Dictionary<ChannelId, Dictionary<WireTapId, IWireTapService.WireTap>> _wireTaps = new();
+    private Dictionary<WireTapId, ChannelId> _channelLookup = new();
 
-    public WireTapId CreateWireTap(string channelName, IWireTapService.WireTap wireTap)
+    public WireTapId CreateWireTap(ChannelId channelId, IWireTapService.WireTap wireTap)
     {
         WireTapId id = WireTapId.Create();
 
         lock (this)
         {
-            if (!_wireTaps.ContainsKey(channelName))
+            if (!_wireTaps.ContainsKey(channelId))
             {
-                _wireTaps.Add(channelName, new Dictionary<WireTapId, IWireTapService.WireTap>() { { id, wireTap } });
+                _wireTaps.Add(channelId, new Dictionary<WireTapId, IWireTapService.WireTap>() { { id, wireTap } });
             }
             else
             {
-                _wireTaps[channelName].Add(id, wireTap);
+                _wireTaps[channelId].Add(id, wireTap);
             }
 
-            _channelLookup.Add(id, channelName);
+            _channelLookup.Add(id, channelId);
         }
 
         return id;
@@ -32,16 +33,16 @@ public class WiretapService : IWireTapService, IPreAction
 
     public async Task PreProcess(FlowNode flowNode, IMessage message)
     {
-        string channelName = flowNode.InChannelName;
-        if (_wireTaps.ContainsKey(channelName))
+        ChannelId channelId = flowNode.InChannelId;
+        if (_wireTaps.ContainsKey(channelId))
         {
-            await Task.WhenAll(_wireTaps[channelName].Values.Select(wireTap => wireTap(message)));
+            await Task.WhenAll(_wireTaps[channelId].Values.Select(wireTap => wireTap(message)));
         }
     }
 
     public void RemoveWireTap(WireTapId id)
     {
-        string channel = _channelLookup[id];
+        ChannelId channel = _channelLookup[id];
         lock (this)
         {
             _channelLookup.Remove(id);

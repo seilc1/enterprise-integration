@@ -32,7 +32,7 @@ public class RabbitMQFlowFixture
         WireTapId id = _wireTapService.CreateWireTap("001_end", async msg => result = msg);
 
         // Act
-        await Gateway.SendPayload("001_hello", "test:");
+        await Gateway.Send("001_hello", "test:");
         await TestHelper.WaitFor(() => result != null);
 
         // Assert

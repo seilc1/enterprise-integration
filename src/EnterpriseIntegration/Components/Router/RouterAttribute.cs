@@ -1,4 +1,6 @@
-﻿namespace EnterpriseIntegration.Attributes
+﻿using EnterpriseIntegration.Channels;
+
+namespace EnterpriseIntegration.Attributes
 {
     /// <summary>
     ///     This method decides the name of the next step of the flow.
@@ -7,7 +9,7 @@
     /// </summary>
     public class RouterAttribute : EnterpriseIntegrationAttribute
     {
-        public RouterAttribute(string inChannelName) : base(inChannelName)
+        public RouterAttribute(string inChannelId) : base(inChannelId)
         {
         }
     }

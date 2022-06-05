@@ -1,4 +1,5 @@
 ﻿using EnterpriseIntegration.Attributes;
+using EnterpriseIntegration.Channels;
 using EnterpriseIntegration.Components.Splitter;
 using EnterpriseIntegration.Errors;
 using EnterpriseIntegration.Flow;
@@ -36,7 +37,6 @@ public class AggregatorMessageProcessor : InvokingMessageProcessor
             return Enumerable.Empty<IMessage>();
         }
 
-        // TODO: fix
         object? result = InvokeFlowNodeMethod<T>(receivedMessages, flowNode);
         
         IMessage resultMessage = AsMessage(message, result);
@@ -45,7 +45,7 @@ public class AggregatorMessageProcessor : InvokingMessageProcessor
         resultMessage.MessageHeaders.SetMessageGroupIndex(null);
         resultMessage.MessageHeaders.SetMessageGroupCount(null);
 
-        await messageSender(flowNode.OutChannelName!, resultMessage);
+        await messageSender((ChannelId)flowNode.OutChannelId!, resultMessage);
 
         return new[] { resultMessage };
     }
