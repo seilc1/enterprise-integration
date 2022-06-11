@@ -1,7 +1,6 @@
 assembly-versioning-scheme: MajorMinorPatch
 mode: Mainline
-next-version: 1.0.0
-branches: {}
-ignore:
-  sha: []
-merge-message-formats: {}
+
+major-version-bump-message: '^((feat|fix|perf)(\(.*\))?!:)|(.*BREAKING CHANGE)'
+minor-version-bump-message: '^feat(\(.*\))?:'
+patch-version-bump-message: '^(fix|chore|refactor|perf)(\(.*\))?:'
