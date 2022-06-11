@@ -5,6 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{6FBF2D87-8948-4FBB-8A3F-A3B5579ADE2A}"
 	ProjectSection(SolutionItems) = preProject
+		CONTRIB.md = CONTRIB.md
 		README.md = README.md
 	EndProjectSection
 EndProject
