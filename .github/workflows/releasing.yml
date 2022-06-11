@@ -11,7 +11,29 @@ env:
     latest_dotnet_version: "6.x"
 
 jobs:
+  release_github:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+            fetch-depth: '0'
+      - name: Determine Version
+        id: semver
+        uses: gittools/actions/gitversion/execute@v0.9.7
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.semver.outputs.semVer }}
+          release_name: Release ${{ steps.semver.outputs.semVer }}
+          draft: false
+          prerelease: false
+
   release:
+    name: Create NuGET Package (Core)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -33,6 +55,7 @@ jobs:
           NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}
 
   release_rabbitmq:
+    name: Create NuGET Package (RabbitMQ)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

@@ -3,7 +3,7 @@ name: Test
 on:
   push:
     branches:
-      - '*'
+      - '**'
       - '!master'
 
 env:
@@ -18,6 +18,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+            fetch-depth: '0'
       - name: Setup .NET Core SDK ${{ env.latest_dotnet_version }}
         uses: actions/setup-dotnet@v2
         with:
@@ -39,6 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+            fetch-depth: '0'
       - name: Setup .NET Core SDK ${{ env.latest_dotnet_version }}
         uses: actions/setup-dotnet@v2
         with:
@@ -61,6 +65,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+            fetch-depth: '0'
       - name: Setup .NET Core SDK ${{ env.latest_dotnet_version }}
         uses: actions/setup-dotnet@v2
         with:
