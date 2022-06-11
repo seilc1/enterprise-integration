@@ -13,40 +13,69 @@ _Example of a flow. A flow could be split over several classes, the different st
 ```C#
 using EnterpriseIntegration.ChannelAttributes;
 
-public class ExampleFlow
+public class ExampleFlow001
 {
-    [ServiceActivator(InChannelName = "hello", OutChannelName = "world")]
+    [ServiceActivator(inChannelId: "hello", outChannelId: "world")]
     public string Hello(string prefix)
     {
         return $"{prefix} hello";
     }
 
-    [ServiceActivator(InChannelName = "world", OutChannelName = "random")]
+    [ServiceActivator(inChannelId: "world", outChannelId: "random")]
     public string World(string data)
     {
         return $"{data} world";
     }
 
-    [Router(InChannelName = "random")]
+    [Router(inChannelId: "random")]
     public string Randomizer(string data)
     {
         return Random.Shared.NextInt64() % 2 == 0 ? "hello" : "end";
     }
 
-    [Endpoint(InChannelName = "end")]
+    [Endpoint(inChannelId: "end")]
     public void End(string data)
     {
-        logger.LogInformation($"{data}.");
+        ...
     }
 }
 ```
 
-
 _Starting the flow by sending a message:_
 ```C#
-// to be injected by dependency injection
-FlowEngine flowEngine;
-await flowEngine.Submit("hello", "FLOW:");
+using EnterpriseIntegration.Flow;
+
+public class ProductController : Controller
+{
+    private readonly IMessageGateway _messageGateway;
+
+    // Inject Gateway with Dependency Injection
+    public ProductController(IMessageGateway messageGateway)
+    {
+        _messageGateway = messageGateway;
+    }
+
+    public async Task<ActionResult> OrderProduct(Product product)
+    {
+        // send message to flow for processing
+        await _messageGateway.Send("order-product", product);
+        return View();
+    }
+}
+```
+
+_Register Enterprise Integration to the ServiceCollection_
+```C#
+using EnterpriseIntegration;
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services
+        // Register Flows used (so to leverage Dependency Injection)
+        .AddSingleton<ExampleFlow001>()
+        // Register Enterprise Integration 
+        .UseEnterpriseIntegration();
+}
 ```
 
 ### Diagram
@@ -61,12 +90,118 @@ await flowEngine.Submit("hello", "FLOW:");
 | [Endpoint](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageEndpoint.html) | DONE | Allows to define a method which only receives a Message. |
 | [Splitter](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Sequencer.html) | DONE | Allows to split a single Message to several Messages (,to be aggregated again). |
 | [Aggregator](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Aggregator.html) | DONE | Allows to aggregate several Messages back into one (after being split).|
-| [Filter](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Filter.html) | NOT YET IN | Allows to only continue with a subset of Messages |
+| [Filter](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Filter.html) | TODO | Allows to only continue with a subset of Messages |
 | [WireTap](https://www.enterpriseintegrationpatterns.com/patterns/messaging/WireTap.html) | DONE | (PRE/POSTAction) Allows to consume Messages without being part of the flow |
-| [History](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageHistory.html) | NOT YET IN | (POSTAction) Allows to Track the History of an Message |
+| [History](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageHistory.html) | TODO | (POSTAction) Allows to Track the History of an Message |
 | ErrorHandling | DONE | Exceptions are forwarded to an ErrorChannel |
+| InMemoryChannel | DONE | Channel for passing messages in the same application |
+| RabbitMQChannel | DONE | Channel for passing messages via [RabbitMQ](https://www.rabbitmq.com/) queues |
+| KafkaChannel | TODO | Channel for passing messages via [Kafka](https://www.confluent.io/lp/apache-kafka) topics |
 
 ## Components
+
+### ServiceActivator
+
+The ServiceActivator allows to activate/execute service from within the flow. This is the basic use case to execute code or call other services as part of a flow.
+
+```C#
+[ServiceActivator(inChannelId: "register-user", outChannelId: "handle-register-user-result")]
+public UserRegistrationResult Register(User user)
+{
+    return UserService.Register(user);
+}
+```
+
+The FlowEngine tries to map the provided payload to the parameters of the attributed method. In addition to just expecting the payload, it's also possible to expect
+the message headers and/or the message itself. Modifications to the message headers will be forwarded to further flow nodes.
+
+
+```C#
+[ServiceActivator(inChannelId: "register-user", outChannelId: "handle-register-user-result")]
+public UserRegistrationResult Register(IMessage<User> userMessage)
+{
+    return UserService.Register(userMessage.Payload);
+}
+```
+
+```C#
+[ServiceActivator(inChannelId: "register-user", outChannelId: "handle-register-user-result")]
+public user Authenticate(User user, IMessageHeaders headers)
+{
+    headers.Add("token", UserService.Authenticate(user));
+    return user;
+}
+```
+
+### Router
+
+A Router allows to route messages to different channels by evaluating any condition. The as router defined method, can
+execute any code and *must* at the end return a ChannelId, to where the originial message/payload is to be sent to.
+
+```C#
+[Router(inChannelId: "route-user-exists")]
+public ChannelId RouteUserExists(User? user)
+{
+    return new ChannelId(user != null ? "set-user" : "load-user");
+}
+```
+
+#### Built-In Router
+
+The Framework comes with a predefined Router, which routes to a Channel provided in the headers.
+
+```C#
+using EnterpriseIntegration.Channels;
+
+[Router(inChannelId: "load-users", outChannelId: EngineChannels.RouteByHeaderChannel)]
+public async Task<User> LoadUser(string userId, IMessageHeaders headers)
+{
+    headers.RouteToChannel = new ChannelId(user != null ? "set-user" : "load-user");
+    return await UserService.LoadUser(userId);
+}
+```
+### Endpoint
+
+Endpoints are similar to ServiceActivator but are intended to be placed at the end of the flow, and therefor do not
+provide a outChannelId.
+
+```C#
+
+[Endpoint(inChannelId: "complete-user-creation")]
+public async Task CompleteUserCreation(string userId)
+{
+    await UserService.SetUserActive(userId);
+}
+```
+
+### Splitter
+
+Splitter allow to generate multiple follow up messages from a single message, these can later be aggregated with an Aggregator to complete the complete flow
+with a single message.
+
+A Splitter adds meta information to the headers, to be used by an Aggregator to wait for completion of all sent messages.
+
+```C#
+[Splitter(inChannelId: "process-complete-order", outChannelId: "process-single-item")]
+public IEnumerable<OrderItem> ProcessOrder(Oder order)
+{
+    return order.Items;
+}
+```
+
+### Aggregator
+
+Aggregator wait for all/enough messages to be arrived, before processing them all. Waiting for all messages requires a MessageStore, where the messages
+can be stored, while waiting for others to arrive. In a setup with multiple apps, it is important to have a MessageStore which is shared over all instances.
+
+
+```C#
+[Aggregator("aggregate-completed-items", "complete-order")]
+public CompleteOrder AggregateOrder(IEnumerable<CompleteOrderItem> completeOrderItem)
+{
+    return OrderService.CompleteOrder(completeOrderItem);
+}
+```
 
 ### WireTap
 
@@ -87,65 +222,20 @@ WireTapId id = _wireTapService.CreateWireTap("name_of_channel", async msg => res
 _wireTapService.RemoveWireTap(id);
 ```
 
-### ServiceActivator
-
-* PreActions
-* Execute Method with Received Message from Defined-InChannel
-* PostActions
-* Send Return-Value to Defined-OutChannel
-
-### Router
-
-* PreActions
-* Execute Method with ReceivedMessage from Defined-InChannel
-* PostActions
-* Send ReceivedMessage to Return-Value
-
-### Endpoint
-
-* PreActions
-* Execute Method with Received Message from Defined-InChannel
-* PostActions
-
-### Splitter
-
-* PreActions
-* Execute Method with Received Message from Defined-InChannel
-* PostActions
-* Split Return-Value into separate Messages
-    * Send each separate Message to Defined-OutChannel
-
-### Aggregator
-
-* PreActions
-* Check if Store + New Message satisfy aggregation condition
-    * *If:YES*
-    * Execute Method with collected Messages
-    * PostActions
-    * Send Return-Value to Defined-OutChannel
-
-    * *If:NO*
-    * Push Message into Store
-    * PostActions
-
-### Filter
-
-* PreActions
-* Execute Method with Received Message from Defined-InChannel
-* PostActions
-* Send Return-Value to Defined-OutChannel
-
 ## Channels
 
 [EIP: Messaging Channels](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessagingChannelsIntro.html) are responsible to transport messages between the
 different components of the Enterprise Integration Pattern. The default channel used, is an InMemoryChannel invoking other components in the same application. By replacing
 such a channel with another implementations (e.g. RabbitMQ), distribution of different applications can be achieved.
 
-### PointToPointDirectMessagingChannel
+### InMemoryChannel
 see: [EIP: Point to Point Channel](https://www.enterpriseintegrationpatterns.com/patterns/messaging/PointToPointChannel.html)
 
-Is an InMemory Channel allowing to connect two endpoints with eachother. The channel is One-to-One connection, directly moving the return value of one endpoint
+Is an InMemoryChannel allowing to connect two endpoints with eachother. The channel is One-to-One connection, directly moving the return value of one endpoint
 to the next endpoint.
+
+This is the default channel type and also the fallback, if a channel is requested (for sending or receiving) and no channel has been previously registered, a new 
+InMemoryChannel will be created.
 
 ### RabbitMQChannel (AMQP)
 
@@ -195,6 +285,14 @@ it to the error channel.
 If an Error/Exception happens during the flow, the FlowEngine catches the exception and forwards it to an error channel. The error channel can be defined via the 
 message headers - if no error channel is defined, the default error channel is used; with the behaviour to log the exception.
 
+```C#
+IMessageHeaders headers = new MessageHeaders();
+headers.WithErrorChannel("custom-error-channel");
+IMessage message = new GenericMessage<ExamplePayload>(headers, ExamplePayload.CreateRandom());
+
+await _messageGateway.SendMessage("flow-entry", message);
+```
+
 ## Common Errors
 
 Common Errors and how to fix them:
@@ -211,6 +309,9 @@ Common Errors and how to fix them:
 ## Unit Tests
 
 ## Integration Tests
+
+Integration Tests are using xUnit Dependencies to setup real applications with proper ServiceCollections to test the flows. 
+Tests for Channels (e.g. RabbitMQ) are using Docker Images (Setup with [FluentDocker](https://github.com/mariotoffia/FluentDocker)) for testing.
 
 ## Load Tests
 

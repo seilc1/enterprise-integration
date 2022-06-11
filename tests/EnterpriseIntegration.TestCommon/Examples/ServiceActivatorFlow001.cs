@@ -12,21 +12,21 @@ public class ServiceActivatorFlow001
         this.logger = logger;
     }
 
-    [ServiceActivator(inChannelName: "001_hello", outChannelName: "001_world")]
+    [ServiceActivator(inChannelId: "001_hello", outChannelId: "001_world")]
     public string Hello(string prefix)
     {
         logger.LogInformation("Hello({Prefix})", prefix);
         return $"{prefix} hello";
     }
 
-    [ServiceActivator(inChannelName: "001_world", outChannelName: "001_end")]
+    [ServiceActivator(inChannelId: "001_world", outChannelId: "001_end")]
     public string World(string data)
     {
         logger.LogInformation("World({Data})", data);
         return $"{data} world";
     }
 
-    [Endpoint(inChannelName: "001_end")]
+    [Endpoint(inChannelId: "001_end")]
     public void End(string data)
     {
         logger.LogInformation("End({Data})", data);

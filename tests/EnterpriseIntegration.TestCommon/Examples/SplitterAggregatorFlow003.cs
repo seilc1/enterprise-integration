@@ -21,45 +21,45 @@ public class SplitterAggregatorFlow003
         _logger = logger;
     }
 
-    [Splitter(inChannelName: "003-start", outChannelName: "003-step")]
+    [Splitter("003-start", "003-step")]
     public IEnumerable<Message> Start()
     {
         return new List<Message>() { new Message(SplitChannel1), new Message(SplitChannel3), new Message(SplitChannel2) };
     }
 
-    [ServiceActivator(inChannelName: "003-step", outChannelName: EngineChannels.RouteByHeaderChannel)]
+    [ServiceActivator(inChannelId: "003-step", outChannelId: EngineChannels.RouteByHeaderChannel)]
     public Message Step(Message message, IMessageHeaders headers)
     {
         headers.RouteToChannel = message.RouteTo;
         return message;
     }
 
-    [ServiceActivator(inChannelName: SplitChannel1, outChannelName: "003-aggregator")]
+    [ServiceActivator(inChannelId: SplitChannel1, outChannelId: "003-aggregator")]
     public int SplitChannel001()
     {
         return 7;
     }
 
-    [ServiceActivator(inChannelName: SplitChannel2, outChannelName: "003-aggregator")]
+    [ServiceActivator(inChannelId: SplitChannel2, outChannelId: "003-aggregator")]
     public int SplitChannel002()
     {
         return 11;
     }
 
-    [ServiceActivator(inChannelName: SplitChannel3, outChannelName: "003-aggregator")]
+    [ServiceActivator(inChannelId: SplitChannel3, outChannelId: "003-aggregator")]
     public int SplitChannel003()
     {
         return 13;
     }
 
-    [Aggregator(inChannelName: "003-aggregator", outChannelName: "003-end")]
+    [Aggregator("003-aggregator", "003-end")]
     public int Aggregate(IEnumerable<int> values)
     {
         _logger.LogInformation("Aggregate({Values}", values);
         return values.Sum();
     }
 
-    [Endpoint(inChannelName: "003-end")]
+    [Endpoint(inChannelId: "003-end")]
     public void End001(int result)
     {
         _logger.LogInformation("End001({Result}", result);

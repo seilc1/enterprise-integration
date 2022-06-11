@@ -7,20 +7,16 @@ using FluentAssertions;
 using System;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace EnterpriseIntegration.IntegrationTests.Flows
 {
     public class ErrorFlowFixture
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
         private readonly IMessageGateway _messageGateway;
         private readonly ErrorFlow _errorFlow;
 
-        public ErrorFlowFixture(ITestOutputHelper testOutputHelper, IMessageGateway messageGateway, ErrorFlow errorFlow)
+        public ErrorFlowFixture(IMessageGateway messageGateway, ErrorFlow errorFlow)
         {
-            _testOutputHelper = testOutputHelper;
             _messageGateway = messageGateway;
             _errorFlow = errorFlow;
         }
@@ -57,7 +53,7 @@ namespace EnterpriseIntegration.IntegrationTests.Flows
 
             // Assert
             PayloadTransformationException error = _errorFlow.LastMessageFailure!.Exception.Should().BeOfType<PayloadTransformationException>().Which;
-            error.ChannelName.Should().Be("error_exception", "fails by transitioning from `error_with_type` to `error_exception`");
+            error.ChannelName.ToString().Should().Be("error_exception", "fails by transitioning from `error_with_type` to `error_exception`");
             error.ReceivedType.Should().Be(typeof(double));
             error.MethodParameterType.Should().Be(typeof(ExamplePayload));
         }

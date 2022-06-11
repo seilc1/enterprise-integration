@@ -1,4 +1,5 @@
-﻿using EnterpriseIntegration.Errors;
+﻿using EnterpriseIntegration.Channels;
+using EnterpriseIntegration.Errors;
 using EnterpriseIntegration.Flow;
 using EnterpriseIntegration.Flow.MessageProcessing;
 using EnterpriseIntegration.Message;
@@ -36,7 +37,7 @@ public class SplitterMessageProcessor : InvokingMessageProcessor
             newMessage.MessageHeaders.SetMessageGroupCount(payloads.Count.ToString());
 
             returnResults.Add(newMessage);
-            sendTasks.Add(messageSender(flowNode.OutChannelName!, newMessage));
+            sendTasks.Add(messageSender((ChannelId)flowNode.OutChannelId!, newMessage));
         }
 
         await Task.WhenAll(sendTasks);

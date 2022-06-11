@@ -1,12 +1,13 @@
-﻿using EnterpriseIntegration.Message;
+﻿using EnterpriseIntegration.Channels;
+using EnterpriseIntegration.Message;
 
 namespace EnterpriseIntegration.Flow;
 
 public interface IMessageGateway
 {
-    public Task SendPayload<T>(string channel, T payload);
+    public Task Send<T>(ChannelId channelId, T payload);
 
-    public Task SendPayload<T>(string channel, IMessageHeaders headers, T payload);
+    public Task Send<T>(ChannelId channelId, IMessageHeaders headers, T payload);
 
-    public Task SendMessage(string channel, IMessage message);
+    public Task SendMessage(ChannelId channelId, IMessage message);
 }

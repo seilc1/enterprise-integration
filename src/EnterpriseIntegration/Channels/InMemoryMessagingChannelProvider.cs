@@ -13,7 +13,7 @@ namespace EnterpriseIntegration.Channels
 
         private static IMessagingChannel CreateMessagingChannel(ChannelId channelId)
         {
-            return new PointToPointDirectMessagingChannel(channelId);
+            return new InMemoryChannel(channelId);
         }
 
         public IMessagingChannel GetMessagingChannel(ChannelId channelId)

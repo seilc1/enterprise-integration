@@ -1,4 +1,6 @@
-﻿namespace EnterpriseIntegration.Attributes
+﻿using EnterpriseIntegration.Channels;
+
+namespace EnterpriseIntegration.Attributes
 {
     /// <summary>
     ///     Procudes separate messages from a <see cref="IEnumerable{T}"/> result.
@@ -7,7 +9,7 @@
     /// <see href="https://www.enterpriseintegrationpatterns.com/patterns/messaging/Sequencer.html">Splitter</see>
     public class SplitterAttribute : ServiceActivatorAttribute
     {
-        public SplitterAttribute(string inChannelName, string outChannelName) : base(inChannelName, outChannelName)
+        public SplitterAttribute(string inChannelId, string outChannelId) : base(inChannelId, outChannelId)
         {
         }
     }

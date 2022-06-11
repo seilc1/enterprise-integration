@@ -1,0 +1,79 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - '*'
+      - '!master'
+
+env:
+    unit_test_project: "tests/EnterpriseIntegration.Tests"
+    integration_test_project: "tests/EnterpriseIntegration.IntegrationTests"
+    rabbitmq_test_project: "tests/EnterpriseIntegration.RabbitMQ.Tests"
+    latest_dotnet_version: "6.x"
+
+jobs:
+  unit_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK ${{ env.latest_dotnet_version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.latest_dotnet_version }}
+      - name: Install dependencies
+        run: dotnet restore $unit_test_project
+      - name: Build
+        run: dotnet build $unit_test_project --no-restore --configuration Release
+      - name: Test
+        run: dotnet test $unit_test_project --no-restore --logger:trx --results-directory "TestResults" 
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: dotnet-results
+          path: "TestResults"
+        if: ${{ always() }}
+
+  integration_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK ${{ env.latest_dotnet_version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.latest_dotnet_version }}
+      - name: Install dependencies
+        run: dotnet restore $integration_test_project
+      - name: Build
+        run: dotnet build $integration_test_project --no-restore --configuration Release
+      - name: Test
+        run: dotnet test $integration_test_project --no-restore --logger:trx --results-directory "TestResults" 
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: dotnet-results
+          path: "TestResults"
+        if: ${{ always() }}
+
+  rabbitmq_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK ${{ env.latest_dotnet_version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.latest_dotnet_version }}
+      - name: Install dependencies
+        run: dotnet restore $rabbitmq_test_project
+      - name: Build
+        run: dotnet build $rabbitmq_test_project --no-restore --configuration Release
+      - name: Test
+        run: dotnet test $rabbitmq_test_project --no-restore --logger:trx --results-directory "TestResults" 
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: dotnet-results
+          path: "TestResults"
+        if: ${{ always() }}

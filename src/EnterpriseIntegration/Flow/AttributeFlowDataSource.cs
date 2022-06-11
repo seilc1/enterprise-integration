@@ -23,7 +23,7 @@ namespace EnterpriseIntegration.Flow
         private static FlowNode ToFlowNode(MethodInfo methodInfo)
         {
             EnterpriseIntegrationAttribute integrationAttribute = (EnterpriseIntegrationAttribute)methodInfo.GetCustomAttributes().Single(a => a.GetType().IsSubclassOf(ROOT_TYPE));
-            FlowNode baseNode = new FlowNode(methodInfo.Name, FlowNodeType.Undefined, integrationAttribute.InChannelName, methodInfo, integrationAttribute);
+            FlowNode baseNode = new FlowNode(methodInfo.Name, FlowNodeType.Undefined, integrationAttribute.InChannelId, methodInfo, integrationAttribute);
 
             switch (integrationAttribute)
             {
@@ -31,19 +31,19 @@ namespace EnterpriseIntegration.Flow
                     return baseNode with
                     { 
                         NodeType = FlowNodeType.Splitter,
-                        OutChannelName = attr.OutChannelName
+                        OutChannelId = attr.OutChannelId
                     };
                 case AggregatorAttribute attr:
                     return baseNode with
                     {
                         NodeType = FlowNodeType.Aggregator,
-                        OutChannelName = attr.OutChannelName
+                        OutChannelId = attr.OutChannelId
                     };
                 case ServiceActivatorAttribute attr:
                     return baseNode with
                     {
                         NodeType = FlowNodeType.ServiceActivator,
-                        OutChannelName = attr.OutChannelName
+                        OutChannelId = attr.OutChannelId
                     };
                 case EndpointAttribute attr:
                     return baseNode with { NodeType = FlowNodeType.Endpoint };

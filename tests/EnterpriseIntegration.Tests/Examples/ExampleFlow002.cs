@@ -19,19 +19,19 @@ namespace EnterpriseIntegration.Tests.Examples
             this.logger = logger;
         }
 
-        [ServiceActivator(inChannelName: "02-hello", outChannelName: "02-world")]
+        [ServiceActivator(inChannelId: "02-hello", outChannelId: "02-world")]
         public string Hello002(string prefix)
         {
             return $"{prefix} hello";
         }
 
-        [ServiceActivator(inChannelName: "02-world", outChannelName: "02-loop")]
+        [ServiceActivator(inChannelId: "02-world", outChannelId: "02-loop")]
         public string World002(IMessage<string> message)
         {
             return $"{message.Payload} world";
         }
 
-        [Router(inChannelName: "02-loop")]
+        [Router(inChannelId: "02-loop")]
         public string Loop002(IMessageHeaders messageHeaders)
         {
             if (messageHeaders.ContainsKey(LoopCounter))
@@ -51,7 +51,7 @@ namespace EnterpriseIntegration.Tests.Examples
             return "02-hello";
         }
 
-        [Endpoint(inChannelName: "02-end")]
+        [Endpoint(inChannelId: "02-end")]
         public void End002(IMessage<string> message, IMessageHeaders headers)
         {
             logger.LogInformation($"{message.Payload} for message:{message.MessageHeaders.Id} after {headers[LoopCounter]} loops.");

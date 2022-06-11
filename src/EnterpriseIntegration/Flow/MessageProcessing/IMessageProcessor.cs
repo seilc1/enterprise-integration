@@ -1,4 +1,4 @@
-﻿using EnterpriseIntegration.Flow.Models;
+﻿using EnterpriseIntegration.Channels;
 using EnterpriseIntegration.Message;
 
 namespace EnterpriseIntegration.Flow.MessageProcessing;
@@ -16,4 +16,4 @@ public interface IMessageProcessor
     public Task<IEnumerable<IMessage>> Process<T>(IMessage<T> message, FlowNode flowNode, SendMessageAsync messageSender);
 }
 
-public delegate Task SendMessageAsync(string channelName, IMessage message);
+public delegate Task SendMessageAsync(ChannelId channelId, IMessage message);

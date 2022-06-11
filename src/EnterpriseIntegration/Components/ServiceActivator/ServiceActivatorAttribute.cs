@@ -1,4 +1,6 @@
-﻿namespace EnterpriseIntegration.Attributes
+﻿using EnterpriseIntegration.Channels;
+
+namespace EnterpriseIntegration.Attributes
 {
     /// <summary>
     /// Channel receives and sends an <see cref="Message.IMessage{T}"/>.
@@ -6,15 +8,15 @@
     /// </summary>
     public class ServiceActivatorAttribute : EnterpriseIntegrationAttribute
     {
-        public ServiceActivatorAttribute(string inChannelName, string outChannelName)
-            : base (inChannelName)
+        public ServiceActivatorAttribute(string inChannelId, string outChannelId)
+            : base (inChannelId)
         {
-            OutChannelName = outChannelName;
+            OutChannelId = outChannelId;
         }
 
         /// <summary>
         /// Name of the next Channel the return value should be forwarded to.
         /// </summary>
-        public string OutChannelName { get; }
+        public ChannelId OutChannelId { get; }
     }
 }

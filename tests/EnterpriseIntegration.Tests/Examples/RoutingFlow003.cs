@@ -16,14 +16,14 @@ namespace EnterpriseIntegration.Tests.Examples
             this.logger = logger;
         }
 
-        [ServiceActivator(inChannelName: "003-start", outChannelName: EngineChannels.RouteByHeaderChannel)]
+        [ServiceActivator(inChannelId: "003-start", outChannelId: EngineChannels.RouteByHeaderChannel)]
         public double Start(IMessageHeaders headers)
         {
             headers.RouteToChannel = "003-end";
             return 13.37;
         }
 
-        [Endpoint(inChannelName: "003-end")]
+        [Endpoint(inChannelId: "003-end")]
         public void End(double result)
         {
             ValueAtTheEnd = result;
