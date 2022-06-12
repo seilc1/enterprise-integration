@@ -59,7 +59,7 @@ namespace EnterpriseIntegration.IntegrationTests.Flows
         }
 
         [Fact]
-        public async Task SendMessage_ShouldThrow_WhenWrongTypeForFirstChannel()
+        public void SendMessage_ShouldThrow_WhenWrongTypeForFirstChannel()
         {
             // Arrange
             IMessageHeaders headers = new MessageHeaders();

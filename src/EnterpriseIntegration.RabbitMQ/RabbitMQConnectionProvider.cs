@@ -22,7 +22,7 @@ namespace EnterpriseIntegation.RabbitMQ
             };
         }
 
-        private IConnection _connection;
+        private IConnection? _connection;
 
         public IConnection Connection
         {
@@ -36,13 +36,23 @@ namespace EnterpriseIntegation.RabbitMQ
         /// <summary>
         ///     Sends <see cref="ConnectionChangedEvent"/> when the Connection has been updated (reconnect).
         /// </summary>
-        public event ConnectionChangedEvent ConnectionChanged;
+        public event ConnectionChangedEvent? ConnectionChanged;
 
         public void Dispose()
         {
-            if (_connection != null)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-                _connection.Dispose();
+                if (_connection != null)
+                {
+                    _connection.Dispose();
+                    _connection = null;
+                }
             }
         }
     }

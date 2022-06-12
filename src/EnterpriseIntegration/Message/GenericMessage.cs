@@ -7,9 +7,14 @@
 
         public GenericMessage(IMessageHeaders headers, T payload)
         {
+            if (payload is null)
+            {
+                throw new ArgumentNullException(nameof(payload));
+            }
+
             MessageHeaders = headers;
             Payload = payload;
-            PayloadType = payload == null ? typeof(object) : payload.GetType();
+            PayloadType = payload.GetType();
         }
 
         public T Payload { get; }
@@ -22,7 +27,7 @@
 
         object IMessage.Payload => Payload!;
 
-        public static GenericMessage<T> From(IMessageMetaData metaData, T? payload)
+        public static GenericMessage<T> From(IMessageMetaData metaData, T payload)
         {
             return new GenericMessage<T>(metaData.MessageHeaders, payload)
             {

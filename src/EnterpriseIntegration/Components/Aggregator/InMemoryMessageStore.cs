@@ -5,7 +5,7 @@ namespace EnterpriseIntegration.Components.Aggregator;
 
 public class InMemoryMessageStore : IMessageStore
 {
-    IList<IMessage> messages = new List<IMessage>();
+    private readonly IList<IMessage> messages = new List<IMessage>();
 
     public Task AddMessage(IMessage message)
     {
@@ -20,7 +20,7 @@ public class InMemoryMessageStore : IMessageStore
 
     public async IAsyncEnumerable<IMessage> GetMessagesByGroupId(string groupId)
     {
-        foreach (IMessage message in messages.Where(m => m.MessageHeaders.GetMessageGroupId() != null && m.MessageHeaders.GetMessageGroupId()!.Equals(groupId)))
+        await foreach (IMessage message in messages.Where(m => m.MessageHeaders.GetMessageGroupId() != null && m.MessageHeaders.GetMessageGroupId()!.Equals(groupId)).ToAsyncEnumerable())
         {
             yield return message;
         }

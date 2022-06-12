@@ -28,8 +28,8 @@ public class RabbitMQFlowFixture
     public async Task SendPayload_ShouldSendMessageToEnd()
     {
         // Arrange
-        IMessage result = null;
-        WireTapId id = _wireTapService.CreateWireTap("001_end", async msg => result = msg);
+        IMessage? result = null;
+        WireTapId id = _wireTapService.CreateWireTap("001_end", msg => Task.Run(() => result = msg));
 
         // Act
         await Gateway.Send("001_hello", "test:");

@@ -3,6 +3,7 @@ using EnterpriseIntegration.Message;
 using FluentAssertions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Xunit;
 
@@ -10,6 +11,8 @@ namespace EnterpriseIntegration.Tests.Flow
 {
     public class FlowEngineResolverTest
     {
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Enterprise Integration Service Activators must not be static")]
+        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Used for Test Cases")]
         public class GoodCaseFlow {
             public void NoType() { }
 
@@ -37,7 +40,7 @@ namespace EnterpriseIntegration.Tests.Flow
             Type parent = typeof(GoodCaseFlow);
             MethodInfo methodInfo = parent.GetMethod(methodName)!;
 
-            FlowNode node = new FlowNode("TEST", FlowNodeType.Undefined, methodName, methodInfo, null);
+            FlowNode node = new("TEST", FlowNodeType.Undefined, methodName, methodInfo, default!);
 
             // act
             Type result = FlowEngineResolver.ExpectedPayloadType(node);
@@ -46,6 +49,8 @@ namespace EnterpriseIntegration.Tests.Flow
             result.Should().Be(expectedType);
         }
 
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Enterprise Integration Service Activators must not be static")]
+        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Used for Test Cases")]
         public class BadCaseFlow
         {
             public void DoubleSimpleParameter(string payload1, string payload2) { }
@@ -61,9 +66,9 @@ namespace EnterpriseIntegration.Tests.Flow
         {
             // arrange
             Type parent = typeof(BadCaseFlow);
-            MethodInfo methodInfo = parent.GetMethod(methodName);
+            MethodInfo methodInfo = parent.GetMethod(methodName)!;
 
-            FlowNode node = new FlowNode("TEST", FlowNodeType.Undefined, methodName, methodInfo, null);
+            FlowNode node = new("TEST", FlowNodeType.Undefined, methodName, methodInfo, default!);
 
             // act
             var exception = Assert.Throws<FlowNodeMethodInvalidException>(() => FlowEngineResolver.ExpectedPayloadType(node));

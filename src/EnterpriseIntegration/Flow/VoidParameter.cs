@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EnterpriseIntegration.Flow
+﻿namespace EnterpriseIntegration.Flow
 {
-    public static class VoidParameter
+    public class VoidParameter
     {
+        private VoidParameter()
+        {
+        }
+
+        public static VoidParameter Instance => new();
     }
 }
