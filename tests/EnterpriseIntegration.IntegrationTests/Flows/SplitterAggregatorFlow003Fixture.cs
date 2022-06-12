@@ -27,11 +27,11 @@ namespace EnterpriseIntegration.IntegrationTests.Flows
         public async Task Submit_ShouldRouteMessageToEnd1()
         {
             // Arrange
-            IMessage result = null;
-            WireTapId id = _wireTapService.CreateWireTap("003-end", async msg => result = msg);
+            IMessage? result = null;
+            WireTapId id = _wireTapService.CreateWireTap("003-end", msg => Task.Run(() => result = msg));
 
             // Act
-            await FlowEngine.Submit("003-start", new object());
+            await FlowEngine.Submit("003-start", ExamplePayload.CreateRandom());
             await TestHelper.WaitFor(() => result != null);
 
             // Assert

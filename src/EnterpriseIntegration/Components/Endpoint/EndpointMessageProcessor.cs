@@ -11,8 +11,7 @@ public class EndpointMessageProcessor : InvokingMessageProcessor
 
     public override async Task<IEnumerable<IMessage>> Process<T>(IMessage<T> message, FlowNode flowNode, SendMessageAsync messageSender)
     {
-        InvokeFlowNodeMethod(message, flowNode);
-
+        await Task.Run(() => InvokeFlowNodeMethod(message, flowNode));
         return Enumerable.Empty<IMessage>();
     }
 }

@@ -19,7 +19,12 @@ namespace EnterpriseIntegration.Flow.MessageProcessing
 
         protected static IMessage AsMessage(IMessage initialMessage, object? payload)
         {
-            if (payload != null && payload.GetType().IsMessage())
+            if (payload is null)
+            {
+                throw new ArgumentNullException(nameof(payload));
+            }
+
+            if (payload.GetType().IsMessage())
             {
                 return (IMessage)payload;
             }

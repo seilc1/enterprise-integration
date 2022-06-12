@@ -21,19 +21,25 @@ namespace EnterpriseIntegration.Channels
                 throw new EnterpriseIntegrationException($"param:{nameof(message)} must implement IMessage<T> but is of type:{message.GetType()}.");
             }
 
-            return GenericMessage<T>.From((IMessage)message, TransformPayload<T>(IMessage.ReflectPayload(message)));
+            T? payload = TransformPayload<T>(IMessage.ReflectPayload(message));
+            if (payload == null)
+            {
+                throw new EnterpriseIntegrationException("$failed to transform out payload");
+            }
+
+            return GenericMessage<T>.From((IMessage)message, payload);
         }
 
         public static T? TransformPayload<T>(object payload)
         {
-            if (payload == null)
-            {
-                return default(T);
-            }
-
             if (typeof(T) == typeof(VoidParameter))
             {
-                return default(T);
+                return (T)Convert.ChangeType(VoidParameter.Instance, typeof(T));
+            }
+
+            if (payload == null)
+            {
+                return default;
             }
 
             if (typeof(T) == typeof(object) || typeof(T) == payload.GetType())
@@ -53,26 +59,22 @@ namespace EnterpriseIntegration.Channels
 
         public async Task<T> Deserialize<T>(ReadOnlyMemory<byte> payload)
         {
-            using (MemoryStream stream = new MemoryStream(payload.ToArray()))
+            using MemoryStream stream = new(payload.ToArray());
+            T? result = await JsonSerializer.DeserializeAsync<T>(stream);
+
+            if (result == null)
             {
-                T? result = await JsonSerializer.DeserializeAsync<T>(stream);
-
-                if (result == null)
-                {
-                    throw new EnterpriseIntegrationException($"failed to deserialize payload.");
-                }
-
-                return result;
+                throw new EnterpriseIntegrationException("failed to deserialize payload.");
             }
+
+            return result;
         }
 
         public async Task<ReadOnlyMemory<byte>> Serialize(object payload)
         {
-            using (MemoryStream outStream = new MemoryStream())
-            {
-                await JsonSerializer.SerializeAsync(outStream, payload);
-                return outStream.ToArray();
-            }
+            using MemoryStream outStream = new();
+            await JsonSerializer.SerializeAsync(outStream, payload);
+            return outStream.ToArray();
         }
     }
 }

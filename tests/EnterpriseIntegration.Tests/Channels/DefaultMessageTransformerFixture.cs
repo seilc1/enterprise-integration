@@ -6,7 +6,7 @@ namespace EnterpriseIntegration.Tests.Channels
 {
     public class DefaultMessageTransformerFixture
     {
-        public record ExampleRecord(string Name, int value);
+        public record ExampleRecord(string Name, int Value);
 
         [Fact]
         public void TransformPayload_ShouldTransformObject_ToRecord()
@@ -21,7 +21,7 @@ namespace EnterpriseIntegration.Tests.Channels
             result.Should().NotBeNull();
             result.Should().BeOfType<ExampleRecord>();
             result!.Name.Should().Be("Test");
-            result.value.Should().Be(0);
+            result.Value.Should().Be(0);
         }
 
         [Fact]
@@ -36,8 +36,8 @@ namespace EnterpriseIntegration.Tests.Channels
             // Assert
             result.Should().NotBeNull();
             result.Should().BeOfType<ExampleRecord>();
-            ((ExampleRecord)result).Name.Should().Be("Test");
-            ((ExampleRecord)result).value.Should().Be(0);
+            ((ExampleRecord)result!).Name.Should().Be("Test");
+            ((ExampleRecord)result).Value.Should().Be(0);
         }
 
         [Fact]

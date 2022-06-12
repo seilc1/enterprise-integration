@@ -28,8 +28,8 @@ public class RoutingFlow002Fixture
     public async Task Submit_ShouldRouteMessageToEnd1()
     {
         // Arrange
-        IMessage result = null;
-        WireTapId id = _wireTapService.CreateWireTap("002-route-001", async msg => result = msg);
+        IMessage? result = null;
+        WireTapId id = _wireTapService.CreateWireTap("002-route-001", msg => Task.Run(() => result = msg));
 
         // Act
         await FlowEngine.Submit("002-start", new RoutingFlow002.Message("002-route-001"));
@@ -49,8 +49,8 @@ public class RoutingFlow002Fixture
     public async Task Submit_ShouldRouteMessageToEnd2()
     {
         // Arrange
-        IMessage result = null;
-        WireTapId id = _wireTapService.CreateWireTap("002-route-002", async msg => result = msg);
+        IMessage? result = null;
+        WireTapId id = _wireTapService.CreateWireTap("002-route-002", msg => Task.Run(() => result = msg));
 
         // Act
         await FlowEngine.Submit("002-start", new RoutingFlow002.Message("002-route-002"));

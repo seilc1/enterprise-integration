@@ -28,16 +28,16 @@ namespace EnterpriseIntegration.RabbitMQ.Tests
         {
             // Arrange
             string queueName = "sendAndReceive";
-            using RabbitMQChannel channel = new RabbitMQChannel(queueName, _rabbitMQFixture.ConnectionProvider, _transformer);
+            using RabbitMQChannel channel = new(queueName, _rabbitMQFixture.ConnectionProvider, _transformer);
             IMessage<Example> message = new GenericMessage<Example>(new Example("Test", 7));
             message.MessageHeaders.Add("custom_header", "some_value");
 
-            IMessage<Example> result = null;
+            IMessage<Example>? result = null;
 
-            Func<IMessage<Example>, Task> subscriber = async responseMessage => result = responseMessage;
+            Task subscriber(IMessage<Example> msg) => Task.Run(() => result = msg);
 
             // Act
-            await channel.Subscribe(subscriber);
+            await channel.Subscribe((Func<IMessage<Example>, Task>)subscriber);
             await channel.Send(message);
             await TestHelper.WaitFor(() => result != null);
 
@@ -57,16 +57,16 @@ namespace EnterpriseIntegration.RabbitMQ.Tests
         {
             // Arrange
             string queueName = "sendAndReceive";
-            using RabbitMQChannel channel = new RabbitMQChannel(queueName, _rabbitMQFixture.ConnectionProvider, _transformer);
+            using RabbitMQChannel channel = new(queueName, _rabbitMQFixture.ConnectionProvider, _transformer);
             IMessage<int> message = new GenericMessage<int>(7);
             message.MessageHeaders.Add("custom_header", "some_value");
 
-            IMessage<int> result = null;
+            IMessage<int>? result = null;
 
-            Func<IMessage<int>, Task> subscriber = async responseMessage => result = responseMessage;
+            Task subscriber(IMessage<int> msg) => Task.Run(() => result = msg);
 
             // Act
-            await channel.Subscribe(subscriber);
+            await channel.Subscribe((Func<IMessage<int>, Task>)subscriber);
             await channel.Send(message);
             await TestHelper.WaitFor(() => result != null);
 
@@ -83,15 +83,15 @@ namespace EnterpriseIntegration.RabbitMQ.Tests
         {
             // Arrange
             string queueName = "sendAndReceive";
-            using RabbitMQChannel channel = new RabbitMQChannel(queueName, _rabbitMQFixture.ConnectionProvider, _transformer);
-            List<IMessage<Example>> messages = new List<IMessage<Example>>(GenerateMessages(15));
-            List<IMessage<Example>> results = new List<IMessage<Example>>();
-            Func<IMessage<Example>, Task> subscriber = async responseMessage => results.Add(responseMessage);
+            using RabbitMQChannel channel = new(queueName, _rabbitMQFixture.ConnectionProvider, _transformer);
+            List<IMessage<Example>> messages = new(GenerateMessages(15));
+            List<IMessage<Example>> results = new();
+            Task subscriber(IMessage<Example> responseMessage) => Task.Run(() => results.Add(responseMessage));
 
             // Act
-            await channel.Subscribe(subscriber);
+            await channel.Subscribe((Func<IMessage<Example>, Task>)subscriber);
 
-            List<Task> sendingTasks = new List<Task>(messages.Count);
+            List<Task> sendingTasks = new(messages.Count);
             foreach (var message in messages)
             {
                 sendingTasks.Add(channel.Send(message));
@@ -105,7 +105,7 @@ namespace EnterpriseIntegration.RabbitMQ.Tests
 
             foreach (IMessage<Example> message in messages)
             {
-                IMessage<Example> result = results.Find(m => m.MessageHeaders.Id == message.MessageHeaders.Id);
+                IMessage<Example>? result = results.Find(m => m.MessageHeaders.Id == message.MessageHeaders.Id);
 
                 result!.Payload.Should().NotBeNull();
                 result.Payload.Name.Should().Be(message.Payload.Name);
@@ -116,7 +116,7 @@ namespace EnterpriseIntegration.RabbitMQ.Tests
             }
         }
 
-        private IEnumerable<IMessage<Example>> GenerateMessages(int count = 10)
+        private static IEnumerable<IMessage<Example>> GenerateMessages(int count = 10)
         {
             for (int i = 0; i < count; i++)
             {

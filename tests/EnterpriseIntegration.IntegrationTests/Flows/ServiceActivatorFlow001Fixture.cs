@@ -27,8 +27,8 @@ public class ServiceActivatorFlow001Fixture
     public async Task Submit_ShouldSendMessageToEnd()
     {
         // Arrange
-        IMessage result = null;
-        WireTapId id = _wireTapService.CreateWireTap("001_end", async msg => result = msg);
+        IMessage? result = null;
+        WireTapId id = _wireTapService.CreateWireTap("001_end", msg => Task.Run(() => result = msg));
 
         // Act
         await FlowEngine.Submit("001_hello", "test:");
@@ -48,8 +48,8 @@ public class ServiceActivatorFlow001Fixture
     public async Task Submit_ShouldSendMessageToEnd_WhenSubmittingAMessage()
     {
         // Arrange
-        IMessage result = null;
-        WireTapId id = _wireTapService.CreateWireTap("001_end", async msg => result = msg);
+        IMessage? result = null;
+        WireTapId id = _wireTapService.CreateWireTap("001_end", msg => Task.Run(() => result = msg));
         IMessage sentMessage = new GenericMessage<string>("test:");
         string messageId = sentMessage.MessageHeaders.Id;
 
@@ -74,8 +74,8 @@ public class ServiceActivatorFlow001Fixture
     public async Task Submit_ShouldSendMultipleMessageToEnd()
     {
         // Arrange
-        IMessage result = null;
-        WireTapId id = _wireTapService.CreateWireTap("001_end", async msg => result = msg);
+        IMessage? result = null;
+        WireTapId id = _wireTapService.CreateWireTap("001_end", msg => Task.Run(() => result = msg));
 
         // Act
         for (int i = 0; i < 50; i++)
