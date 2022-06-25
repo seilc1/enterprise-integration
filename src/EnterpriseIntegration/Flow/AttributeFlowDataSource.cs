@@ -1,5 +1,7 @@
 ﻿using EnterpriseIntegration.Attributes;
+using EnterpriseIntegration.Components.Filter;
 using EnterpriseIntegration.Errors;
+using Microsoft.Extensions.Logging;
 using System.Reflection;
 
 namespace EnterpriseIntegration.Flow
@@ -7,8 +9,14 @@ namespace EnterpriseIntegration.Flow
     public class AttributeFlowDataSource : IFlowDataSource
     {
         private static readonly Type ROOT_TYPE = typeof(EnterpriseIntegrationAttribute);
+        private readonly ILogger<AttributeFlowDataSource> _logger;
 
-        public IEnumerable<MethodInfo> GetAllMethodsWithIntegrationAttribute()
+        public AttributeFlowDataSource(ILogger<AttributeFlowDataSource> logger)
+        {
+            _logger = logger;
+        }
+
+        public static IEnumerable<MethodInfo> GetAllMethodsWithIntegrationAttribute()
         {
             return GetAssemblies().SelectMany(a => a.GetTypes())
                 .SelectMany(t => t.GetMethods())
@@ -17,44 +25,29 @@ namespace EnterpriseIntegration.Flow
 
         public IEnumerable<FlowNode> GetAllFlowNodes()
         {
-            return GetAllMethodsWithIntegrationAttribute().Select(method => ToFlowNode(method));
+            return GetAllMethodsWithIntegrationAttribute()
+                .Select(ExtractAttribute)
+                .Where(IsValidAttributeAssignment)
+                .Select(t => ToFlowNode(t.Item1, t.Item2));
         }
 
-        private static FlowNode ToFlowNode(MethodInfo methodInfo)
+        private static FlowNode ToFlowNode(MethodInfo methodInfo, EnterpriseIntegrationAttribute integrationAttribute)
         {
-            EnterpriseIntegrationAttribute integrationAttribute = (EnterpriseIntegrationAttribute)methodInfo.GetCustomAttributes().Single(a => a.GetType().IsSubclassOf(ROOT_TYPE));
-            FlowNode baseNode = new FlowNode(methodInfo.Name, FlowNodeType.Undefined, integrationAttribute.InChannelId, methodInfo, integrationAttribute);
+            FlowNode baseNode = new(methodInfo.Name, FlowNodeType.Undefined, integrationAttribute.InChannelId, methodInfo, integrationAttribute);
 
-            switch (integrationAttribute)
+            return integrationAttribute switch
             {
-                case SplitterAttribute attr:
-                    return baseNode with
-                    { 
-                        NodeType = FlowNodeType.Splitter,
-                        OutChannelId = attr.OutChannelId
-                    };
-                case AggregatorAttribute attr:
-                    return baseNode with
-                    {
-                        NodeType = FlowNodeType.Aggregator,
-                        OutChannelId = attr.OutChannelId
-                    };
-                case ServiceActivatorAttribute attr:
-                    return baseNode with
-                    {
-                        NodeType = FlowNodeType.ServiceActivator,
-                        OutChannelId = attr.OutChannelId
-                    };
-                case EndpointAttribute attr:
-                    return baseNode with { NodeType = FlowNodeType.Endpoint };
-                case RouterAttribute attr:
-                    return baseNode with { NodeType = FlowNodeType.Router };
-                default:
-                    throw new EnterpriseIntegrationException($"Unexpected attribute of type: {integrationAttribute.GetType()}");
-            }
+                SplitterAttribute attr          => baseNode with { NodeType = FlowNodeType.Splitter,            OutChannelId = attr.OutChannelId },
+                FilterAttribute attr            => baseNode with { NodeType = FlowNodeType.Filter,              OutChannelId = attr.OutChannelId },
+                AggregatorAttribute attr        => baseNode with { NodeType = FlowNodeType.Aggregator,          OutChannelId = attr.OutChannelId },
+                ServiceActivatorAttribute attr  => baseNode with { NodeType = FlowNodeType.ServiceActivator,    OutChannelId = attr.OutChannelId },
+                EndpointAttribute               => baseNode with { NodeType = FlowNodeType.Endpoint },
+                RouterAttribute                 => baseNode with { NodeType = FlowNodeType.Router },
+                _                               => throw new EnterpriseIntegrationException($"Unexpected attribute of type: {integrationAttribute.GetType()}"),
+            };
         }
 
-        private IEnumerable<Assembly> GetAssemblies()
+        private static IEnumerable<Assembly> GetAssemblies()
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -63,6 +56,25 @@ namespace EnterpriseIntegration.Flow
                     yield return assembly;
                 }
             }
+        }
+
+        private static Tuple<MethodInfo, EnterpriseIntegrationAttribute> ExtractAttribute(MethodInfo methodInfo)
+        {
+            return Tuple.Create(methodInfo, (EnterpriseIntegrationAttribute)methodInfo.GetCustomAttributes().Single(a => a.GetType().IsSubclassOf(ROOT_TYPE)));
+        }
+
+        private bool IsValidAttributeAssignment(Tuple<MethodInfo, EnterpriseIntegrationAttribute> methodWithAttribute)
+        {
+            if (!methodWithAttribute.Item2.IsValid(methodWithAttribute.Item1))
+            {
+                _logger.LogWarning("Method:{Class}.{Method} has Attribute:{} which is not valid.", 
+                    methodWithAttribute.Item1.DeclaringType?.Name,
+                    methodWithAttribute.Item1.Name,
+                    methodWithAttribute.Item2.GetType().Name);
+                return false;
+            }
+
+            return true;
         }
     }
 }

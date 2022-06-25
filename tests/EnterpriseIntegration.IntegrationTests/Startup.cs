@@ -7,17 +7,19 @@ namespace EnterpriseIntegration.IntegrationTests
 {
     public class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
+        public static void ConfigureServices(IServiceCollection services)
         {
             services
                 .AddSingleton<ServiceActivatorFlow001>()
                 .AddSingleton<RoutingFlow002>()
                 .AddSingleton<SplitterAggregatorFlow003>()
                 .AddSingleton<ErrorFlow>()
+                .AddSingleton<FilterFlow>()
+                .UseWireTap()
                 .UseEnterpriseIntegration();
         }
 
-        public void Configure(IServiceProvider provider)
+        public static void Configure(IServiceProvider provider)
         {
             XunitTestOutputLoggerProvider.Register(provider);
         }

@@ -90,7 +90,7 @@ public void ConfigureServices(IServiceCollection services)
 | [Endpoint](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageEndpoint.html) | DONE | Allows to define a method which only receives a Message. |
 | [Splitter](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Sequencer.html) | DONE | Allows to split a single Message to several Messages (,to be aggregated again). |
 | [Aggregator](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Aggregator.html) | DONE | Allows to aggregate several Messages back into one (after being split).|
-| [Filter](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Filter.html) | TODO | Allows to only continue with a subset of Messages |
+| [Filter](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Filter.html) | DONE | Allows to only continue with a subset of Messages |
 | [WireTap](https://www.enterpriseintegrationpatterns.com/patterns/messaging/WireTap.html) | DONE | (PRE/POSTAction) Allows to consume Messages without being part of the flow |
 | [History](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageHistory.html) | TODO | (POSTAction) Allows to Track the History of an Message |
 | ErrorHandling | DONE | Exceptions are forwarded to an ErrorChannel |
@@ -186,6 +186,19 @@ A Splitter adds meta information to the headers, to be used by an Aggregator to 
 public IEnumerable<OrderItem> ProcessOrder(Oder order)
 {
     return order.Items;
+}
+```
+
+### Filter
+
+Filter allows to stop some messages from the flow. This might be helpful as a part of a Splitter.
+
+
+```C#
+[Filter("filter", "next-channel")]
+public FilterResult OnlyForwardWhenEnoughCash(Message message)
+{
+    return message.Cash >= Cost ? FilterResult.Forward : FilterResult.Discard;
 }
 ```
 

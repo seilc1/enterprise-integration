@@ -7,6 +7,7 @@
         Router = 2,
         Splitter = 3,
         Aggregator = 4,
+        Filter = 5,
         Endpoint = byte.MaxValue,
     }
 }

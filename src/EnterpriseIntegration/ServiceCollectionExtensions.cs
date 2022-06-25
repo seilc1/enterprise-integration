@@ -1,6 +1,7 @@
 ﻿using EnterpriseIntegration.Channels;
 using EnterpriseIntegration.Components.Aggregator;
 using EnterpriseIntegration.Components.Endpoint;
+using EnterpriseIntegration.Components.Filter;
 using EnterpriseIntegration.Components.PreActions;
 using EnterpriseIntegration.Components.Router;
 using EnterpriseIntegration.Components.ServiceActivator;
@@ -25,7 +26,6 @@ namespace EnterpriseIntegration
                 .AddSingleton<IFlowDataSource, AttributeFlowDataSource>()
                 .AddSingleton<IMessageTransformer, DefaultMessageTransformer>()
                 .UseDefaultMessageProcessors()
-                .UseWireTap()
                 .AddSingleton<FlowEngine>()
                 .AddSingleton<IMessageGateway>(x => x.GetRequiredService<FlowEngine>());
         }
@@ -37,7 +37,8 @@ namespace EnterpriseIntegration
                 .AddSingleton<IMessageProcessor, RouterMessageProcessor>()
                 .AddSingleton<IMessageProcessor, EndpointMessageProcessor>()
                 .AddSingleton<IMessageProcessor, SplitterMessageProcessor>()
-                .AddSingleton<IMessageProcessor, AggregatorMessageProcessor>();
+                .AddSingleton<IMessageProcessor, AggregatorMessageProcessor>()
+                .AddSingleton<IMessageProcessor, FilterMessageProcessor>();
         }
 
         public static IServiceCollection UseWireTap(this IServiceCollection serviceCollection)

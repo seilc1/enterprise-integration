@@ -5,7 +5,7 @@ namespace EnterpriseIntegration.Flow
 {
     public static class FlowEngineResolver
     {
-        private static Type IMessageBaseType = typeof(IMessage<>).GetGenericTypeDefinition();
+        private static readonly Type IMessageBaseType = typeof(IMessage<>).GetGenericTypeDefinition();
 
         public static Type ExpectedPayloadType(FlowNode flowNode)
         {
@@ -42,7 +42,7 @@ namespace EnterpriseIntegration.Flow
                 result = IsMessageParameter(parameterInfo) ? parameterInfo.ParameterType.GetGenericArguments()[0] : parameterInfo.ParameterType;
             }
 
-            return result != null ? result : typeof(VoidParameter);
+            return result ?? typeof(VoidParameter);
         }
 
         public static bool IsMessageParameter(ParameterInfo parameterInfo)
