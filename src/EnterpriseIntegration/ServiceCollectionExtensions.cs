@@ -2,6 +2,7 @@
 using EnterpriseIntegration.Components.Aggregator;
 using EnterpriseIntegration.Components.Endpoint;
 using EnterpriseIntegration.Components.Filter;
+using EnterpriseIntegration.Components.History;
 using EnterpriseIntegration.Components.PreActions;
 using EnterpriseIntegration.Components.Router;
 using EnterpriseIntegration.Components.ServiceActivator;
@@ -47,6 +48,13 @@ namespace EnterpriseIntegration
                 .AddSingleton<WiretapService>()
                 .AddSingleton<IWireTapService>(c => c.GetRequiredService<WiretapService>())
                 .AddSingleton<IPreAction>(c => c.GetRequiredService<WiretapService>());
+        }
+
+        public static IServiceCollection UseSimpleHistory(this IServiceCollection serviceCollection)
+        {
+            return serviceCollection
+                .AddSingleton<HistoryService>()
+                .AddSingleton<IPreAction>(c => c.GetRequiredService<HistoryService>());
         }
     }
 }
