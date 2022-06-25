@@ -28,5 +28,7 @@ namespace EnterpriseIntegration.Message
 
             return stringBuilder.ToString();
         }
+
+        public static MessageHeaders CopyFrom(IMessageHeaders messageHeaders) => new MessageHeaders(messageHeaders);
     }
 }

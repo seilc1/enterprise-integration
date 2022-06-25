@@ -7,12 +7,6 @@ public class InMemoryMessageStore : IMessageStore
 {
     private readonly IList<IMessage> messages = new List<IMessage>();
 
-    public Task AddMessage(IMessage message)
-    {
-        messages.Add(message);
-        return Task.CompletedTask;
-    }
-
     public Task<IMessage> GetMessage(string id)
     {
         return Task.FromResult(messages.Single(m => m.MessageHeaders.Id.Equals(id, StringComparison.OrdinalIgnoreCase)));
@@ -36,6 +30,16 @@ public class InMemoryMessageStore : IMessageStore
         await foreach(IMessage message in GetMessagesByGroupId(groupId))
         {
             messages.Remove(message);
+        }
+    }
+
+    public Task<ICollection<IMessage>> AddMessage(IMessage message)
+    {
+        lock (this)
+        {
+            string groupId = message.MessageHeaders.GetMessageGroupId()!;
+            messages.Add(message);
+            return Task.FromResult((ICollection<IMessage>)messages.Where(m => m.MessageHeaders.GetMessageGroupId() != null && m.MessageHeaders.GetMessageGroupId()!.Equals(groupId)).ToList());
         }
     }
 }

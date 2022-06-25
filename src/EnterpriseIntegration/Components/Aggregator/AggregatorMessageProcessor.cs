@@ -27,13 +27,11 @@ public class AggregatorMessageProcessor : InvokingMessageProcessor
             throw new EnterpriseIntegrationException("Aggregated Message has no groupId present.");
         }
 
-        ICollection<IMessage> receivedMessages = await GetReceivedMessages(groupId);
-        receivedMessages.Add(message);
+        ICollection<IMessage> receivedMessages = await _messageStore.AddMessage(message);
         AggregatorAttribute attribute = (AggregatorAttribute)flowNode.Attribute;
 
         if (!IsConditionSatisfied(attribute, receivedMessages))
         {
-            await _messageStore.AddMessage(message);
             return Enumerable.Empty<IMessage>();
         }
 
@@ -48,17 +46,6 @@ public class AggregatorMessageProcessor : InvokingMessageProcessor
         await messageSender((ChannelId)flowNode.OutChannelId!, resultMessage);
 
         return new[] { resultMessage };
-    }
-
-    private async Task<ICollection<IMessage>> GetReceivedMessages(string groupId)
-    {
-        ICollection<IMessage> receivedMessages = new List<IMessage>();
-        await foreach (IMessage groupedMessage in _messageStore.GetMessagesByGroupId(groupId))
-        {
-            receivedMessages.Add(groupedMessage);
-        }
-
-        return receivedMessages;
     }
 
     private bool IsConditionSatisfied(AggregatorAttribute attribute, ICollection<IMessage> messages)

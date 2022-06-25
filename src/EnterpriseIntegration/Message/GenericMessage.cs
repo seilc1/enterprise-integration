@@ -27,11 +27,19 @@
 
         object IMessage.Payload => Payload!;
 
-        public static GenericMessage<T> From(IMessageMetaData metaData, T payload)
+        public static GenericMessage<T> From(IMessage message, T payload)
         {
-            return new GenericMessage<T>(metaData.MessageHeaders, payload)
+            return new GenericMessage<T>(message.MessageHeaders, payload)
             {
-                MessageBag = metaData.MessageBag
+                MessageBag = message.MessageBag
+            };
+        }
+
+        public static GenericMessage<T> WithNewHeaders(IMessage message, T payload)
+        {
+            return new GenericMessage<T>(Message.MessageHeaders.CopyFrom(message.MessageHeaders), payload)
+            {
+                MessageBag = message.MessageBag
             };
         }
     }

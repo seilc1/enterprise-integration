@@ -16,6 +16,7 @@ namespace EnterpriseIntegration.IntegrationTests
                 .AddSingleton<ErrorFlow>()
                 .AddSingleton<FilterFlow>()
                 .UseWireTap()
+                .UseSimpleHistory()
                 .UseEnterpriseIntegration();
         }
 

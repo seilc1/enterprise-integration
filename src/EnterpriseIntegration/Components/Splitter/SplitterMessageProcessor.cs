@@ -29,7 +29,7 @@ public class SplitterMessageProcessor : InvokingMessageProcessor
         string groupId = Guid.NewGuid().ToString();
         foreach (object result in payloads)
         {
-            IMessage newMessage = AsMessage(message, result);
+            IMessage newMessage = AsDistinctMessage(message, result);
             newMessage.MessageHeaders.Id = Guid.NewGuid().ToString();
             newMessage.MessageHeaders.SetOriginalId(message.MessageHeaders.Id);
             newMessage.MessageHeaders.SetMessageGroupId(groupId);
@@ -43,5 +43,20 @@ public class SplitterMessageProcessor : InvokingMessageProcessor
         await Task.WhenAll(sendTasks);
 
         return returnResults;
+    }
+
+    protected static IMessage AsDistinctMessage(IMessage initialMessage, object? payload)
+    {
+        if (payload is null)
+        {
+            throw new ArgumentNullException(nameof(payload));
+        }
+
+        if (payload.GetType().IsMessage())
+        {
+            return (IMessage)payload;
+        }
+
+        return GenericMessage<object>.WithNewHeaders(initialMessage, payload);
     }
 }
