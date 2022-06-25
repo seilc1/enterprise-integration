@@ -10,7 +10,7 @@ namespace EnterpriseIntegration.RabbitMQ.Tests
 {
     public class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
+        public static void ConfigureServices(IServiceCollection services)
         {
             IConfigurationBuilder configBuilder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -24,10 +24,11 @@ namespace EnterpriseIntegration.RabbitMQ.Tests
                 .AddSingleton<ErrorFlow>()
                 .WithRabbitMQMessaging(config)
                 .WithRabbitMQChannel("001_world")
+                .UseWireTap()
                 .UseEnterpriseIntegration();
         }
 
-        public void Configure(IServiceProvider provider)
+        public static void Configure(IServiceProvider provider)
         {
             XunitTestOutputLoggerProvider.Register(provider);
         }

@@ -5,6 +5,7 @@ using EnterpriseIntegration.Errors;
 using EnterpriseIntegration.Flow.MessageProcessing;
 using EnterpriseIntegration.Message;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace EnterpriseIntegration.Flow
@@ -44,7 +45,7 @@ namespace EnterpriseIntegration.Flow
                 _flowNodes.Add(flowNode.InChannelId, flowNode);
 
                 GetType().GetMethod(nameof(SubscribeChannel), BindingFlags.Instance | BindingFlags.NonPublic)!
-                    .MakeGenericMethod(type != null ? type : typeof(VoidParameter))
+                    .MakeGenericMethod(type ?? typeof(VoidParameter))
                     .Invoke(this, new object?[] { flowNode });
             }
         }
@@ -56,6 +57,7 @@ namespace EnterpriseIntegration.Flow
         }
 
         [Router(inChannelId: EngineChannels.RouteByHeaderChannel)]
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Enterprise Integration requires the method to be not static")]
         public string RouteByHeader(IMessageHeaders headers)
         {
             string? routeToChannel = headers.RouteToChannel;
@@ -98,7 +100,16 @@ namespace EnterpriseIntegration.Flow
 
         public void Dispose()
         {
-            _subscriptions.Clear();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _subscriptions.Clear();
+            }
         }
 
         private async Task ExecutePreActions<T>(FlowNode flowNode, IMessage<T> message)
@@ -124,8 +135,7 @@ namespace EnterpriseIntegration.Flow
                 reasonOfError = ex.InnerException;
             }
 
-            PayloadTransformationException? payloadTransformationException = reasonOfError as PayloadTransformationException;
-            if (payloadTransformationException != null)
+            if (reasonOfError is PayloadTransformationException payloadTransformationException)
             {
                 reasonOfError = new PayloadTransformationException(payloadTransformationException.ReceivedType, payloadTransformationException.MethodParameterType, (ChannelId)flowNode.OutChannelId!);
             }

@@ -1,4 +1,5 @@
 ﻿using EnterpriseIntegration.Channels;
+using System.Reflection;
 
 namespace EnterpriseIntegration.Attributes
 {
@@ -14,8 +15,16 @@ namespace EnterpriseIntegration.Attributes
         }
 
         /// <summary>
-        /// Name of the channel, where messages are received for this channel.
+        ///     Id of the channel, where messages are received from for this Method.
         /// </summary>
         public ChannelId InChannelId { get; }
+
+        /// <summary>
+        ///     Validates that the method, this <see cref="Attribute"/> is applied to, is valid.
+        /// </summary>
+        public virtual bool IsValid(MethodInfo method)
+        {
+            return true;
+        }
     }
 }

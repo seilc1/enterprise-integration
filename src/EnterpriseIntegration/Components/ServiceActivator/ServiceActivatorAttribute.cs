@@ -3,7 +3,7 @@
 namespace EnterpriseIntegration.Attributes
 {
     /// <summary>
-    /// Channel receives and sends an <see cref="Message.IMessage{T}"/>.
+    ///     Channel receives and sends an <see cref="Message.IMessage{T}"/>.
     /// <see href="https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessagingAdapter.html"/>
     /// </summary>
     public class ServiceActivatorAttribute : EnterpriseIntegrationAttribute
