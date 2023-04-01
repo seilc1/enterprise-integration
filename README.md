@@ -1,4 +1,4 @@
-# .NET 6 Implementation of Enterprise Integration Pattern
+# .NET 7 Implementation of Enterprise Integration Pattern
 
 Following the definition of [EIP (Enterprise Integration Pattern)](https://www.enterpriseintegrationpatterns.com/patterns/messaging)
 inspired by the [Spring Integration](https://spring.io/projects/spring-integration).
@@ -92,7 +92,7 @@ public void ConfigureServices(IServiceCollection services)
 | [Aggregator](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Aggregator.html) | DONE | Allows to aggregate several Messages back into one (after being split).|
 | [Filter](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Filter.html) | DONE | Allows to only continue with a subset of Messages |
 | [WireTap](https://www.enterpriseintegrationpatterns.com/patterns/messaging/WireTap.html) | DONE | (PRE/POSTAction) Allows to consume Messages without being part of the flow |
-| [History](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageHistory.html) | TODO | (POSTAction) Allows to Track the History of an Message |
+| [History](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageHistory.html) | DONE | (POSTAction) Allows to Track the History of an Message |
 | ErrorHandling | DONE | Exceptions are forwarded to an ErrorChannel |
 | InMemoryChannel | DONE | Channel for passing messages in the same application |
 | RabbitMQChannel | DONE | Channel for passing messages via [RabbitMQ](https://www.rabbitmq.com/) queues |

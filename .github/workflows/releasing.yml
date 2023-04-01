@@ -8,7 +8,7 @@ on:
 env:
     project: "src/EnterpriseIntegration"
     rabbitmq_project: "src/EnterpriseIntegration.RabbitMQ"
-    latest_dotnet_version: "6.x"
+    latest_dotnet_version: "7.x"
 
 jobs:
   release_github:
