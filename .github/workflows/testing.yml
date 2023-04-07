@@ -10,6 +10,7 @@ env:
     unit_test_project: "tests/EnterpriseIntegration.Tests"
     integration_test_project: "tests/EnterpriseIntegration.IntegrationTests"
     rabbitmq_test_project: "tests/EnterpriseIntegration.RabbitMQ.Tests"
+    kafka_test_project: "tests/EnterpriseIntegration.Kafka.Tests"
     latest_dotnet_version: "7.x"
 
 jobs:
@@ -77,6 +78,30 @@ jobs:
         run: dotnet build $rabbitmq_test_project --no-restore --configuration Release
       - name: Test
         run: dotnet test $rabbitmq_test_project --no-restore --logger:trx --results-directory "TestResults" 
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: dotnet-results
+          path: "TestResults"
+        if: ${{ always() }}
+        
+  kafka_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+            fetch-depth: '0'
+      - name: Setup .NET Core SDK ${{ env.latest_dotnet_version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.latest_dotnet_version }}
+      - name: Install dependencies
+        run: dotnet restore $kafka_test_project
+      - name: Build
+        run: dotnet build $kafka_test_project --no-restore --configuration Release
+      - name: Test
+        run: dotnet test $kafka_test_project --no-restore --logger:trx --results-directory "TestResults" 
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v3
         with:

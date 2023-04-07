@@ -70,11 +70,17 @@ namespace EnterpriseIntegration.Channels
             return result;
         }
 
-        public async Task<ReadOnlyMemory<byte>> Serialize(object payload)
+        public async Task<T> Deserialize<T>(string payload)
+            => await Deserialize<T>(new ReadOnlyMemory<byte>(_encoding.GetBytes(payload)));
+
+        public async Task<ReadOnlyMemory<byte>> SerializeAsByteArray(object payload)
         {
             using MemoryStream outStream = new();
             await JsonSerializer.SerializeAsync(outStream, payload);
             return outStream.ToArray();
         }
+
+        public async Task<string> SerializeAsString(object payload)
+            => _encoding.GetString((await SerializeAsByteArray(payload)).Span);
     }
 }

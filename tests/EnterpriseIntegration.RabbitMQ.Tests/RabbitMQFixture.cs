@@ -1,7 +1,6 @@
 using Ductus.FluentDocker.Services;
 using EnterpriseIntegation.RabbitMQ;
 using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
 using System;
 
 namespace EnterpriseIntegration.RabbitMQ.Tests
@@ -21,8 +20,6 @@ namespace EnterpriseIntegration.RabbitMQ.Tests
             Password = RabbitMQPassword
         };
 
-        private ConnectionFactory ConnectionFactory { get; init; }
-
         public RabbitMQFixture()
         {
             Container = new Ductus.FluentDocker.Builders.Builder()
@@ -35,8 +32,6 @@ namespace EnterpriseIntegration.RabbitMQ.Tests
                 .WaitForMessageInLog("Server startup complete", TimeSpan.FromSeconds(30))
                 .Build()
                 .Start();
-
-            ConnectionFactory = new ConnectionFactory() { HostName = Settings.Hostname, UserName = Settings.Username, Password = Settings.Password };
         }
 
         public void Dispose()

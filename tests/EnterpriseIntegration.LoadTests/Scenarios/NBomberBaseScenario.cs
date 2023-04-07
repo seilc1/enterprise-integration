@@ -27,7 +27,7 @@ namespace EnterpriseIntegration.LoadTests.Scenarios
 
         protected FlowEngine FlowEngine { get; }
 
-        private ConcurrentDictionary<string, string> _receivedMessages = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> _receivedMessages = new ();
 
         protected NBomberBaseScenario(ILogger logger, IWireTapService wireTapService, FlowEngine flowEngine)
         {
@@ -40,19 +40,16 @@ namespace EnterpriseIntegration.LoadTests.Scenarios
         {
             WireTapId wireTapId = WireTapService.CreateWireTap(EndChannel, MessageWireTap);
 
-            var stepSendMessage = Step.Create("SendAndWaitMessage", async context =>
-            {
-                var message = new GenericMessage<T>(GeneratePayload());
-                string messageId = message.MessageHeaders.Id;
+            var scenario = Scenario.Create("SendAndWaitMessage", async context =>
+                {
+                    var message = new GenericMessage<T>(GeneratePayload());
+                    string messageId = message.MessageHeaders.Id;
 
-                await FlowEngine.Submit(StartChannel, message);
-                await WaitFor(() => HasMessageReceived(messageId), CheckIntervalInMilliseconds, MaxWaitTimeInMilliseconds);
+                    await FlowEngine.Submit(StartChannel, message);
+                    await WaitFor(() => HasMessageReceived(messageId), CheckIntervalInMilliseconds, MaxWaitTimeInMilliseconds);
 
-                return HasMessageReceived(messageId) ? Response.Ok() : Response.Fail();
-            });
-
-            var scenario = ScenarioBuilder
-                .CreateScenario("SendAndWaitMessage", stepSendMessage)
+                    return HasMessageReceived(messageId) ? Response.Ok() : Response.Fail();
+                })
                 .WithWarmUpDuration(TimeSpan.FromSeconds(1))
                 .WithLoadSimulations(new [] { LoadSimulation.NewKeepConstant(Environment.ProcessorCount, TimeSpan.FromSeconds(60)) });
 

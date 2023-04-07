@@ -8,6 +8,7 @@ on:
 env:
     project: "src/EnterpriseIntegration"
     rabbitmq_project: "src/EnterpriseIntegration.RabbitMQ"
+    kafka_project: "src/EnterpriseIntegration.Kafka"
     latest_dotnet_version: "7.x"
 
 jobs:
@@ -77,5 +78,27 @@ jobs:
         run: dotnet pack --configuration Release $rabbitmq_project
       - name: Publish the package to nuget.org
         run: dotnet nuget push $rabbitmq_project/bin/Release/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}
+
+  release_kafka:
+    name: Create NuGET Package (Kafka)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+            fetch-depth: '0'
+      - name: Setup .NET Core SDK ${{ env.latest_dotnet_version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.latest_dotnet_version }}
+      - name: Install dependencies
+        run: dotnet restore $kafka_project
+      - name: Build
+        run: dotnet build $kafka_project --no-restore --configuration Release
+      - name: Create nuget package
+        run: dotnet pack --configuration Release $kafka_project
+      - name: Publish the package to nuget.org
+        run: dotnet nuget push $kafka_project/bin/Release/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
         env:
           NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}

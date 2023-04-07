@@ -48,7 +48,7 @@ namespace EnterpriseIntegation.RabbitMQ
 
         public async Task Send(IMessage message)
         {
-            ReadOnlyMemory<byte> payload = await _transformer.Serialize(message.Payload);
+            ReadOnlyMemory<byte> payload = await _transformer.SerializeAsByteArray(message.Payload);
             await Task.Run(() =>
             {
                 var channel = _queue.Value;
@@ -78,7 +78,7 @@ namespace EnterpriseIntegation.RabbitMQ
         {
             if (HasSubscriber)
             {
-                throw new EnterpriseIntegrationException($"{nameof(InMemoryChannel)} only supports a single subscriber.");
+                throw new EnterpriseIntegrationException($"{nameof(RabbitMQChannel)} only supports a single subscriber.");
             }
             HasSubscriber = true;
 

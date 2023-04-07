@@ -285,6 +285,58 @@ public class Startup
 
 The Registration of a RabbitMQChannel can be configured with additional parameters of the registration method.
 
+### KafkaChannel
+
+Provides a simple channel implementation using [Kafka](https://kafka.apache.org/).
+
+Registration of Kafka
+```C#
+using EnterpriseIntegation.Kafka;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit.DependencyInjection.Logging;
+
+namespace EnterpriseIntegration.Kafka.Tests;
+public class Startup
+{
+    public static void ConfigureServices(IServiceCollection services)
+    {
+        IConfigurationBuilder configBuilder = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json");
+        IConfiguration config = configBuilder.Build();
+
+        services
+            .AddSingleton<ServiceActivatorFlow001>()
+            // Enable Kafka Messaging based on json config
+            .WithKafkaMessaging(config)
+            // Provide the channel "001_world" via Kafka and will try to create the topic if it doesn't exist already
+            .WithKafkaChannel("001_world", c => c.EnsureCreated = true)
+            .UseWireTap()
+            .UseEnterpriseIntegration();
+    }
+}
+```
+
+The Registration of a KafkaChannel can be configured with additional parameters of the registration method.
+
+Example of the configuration for Kafka (it leverages the base kafka config, so all kafka configs are possible).
+```JSON
+{
+  "EnterpriseIntegration": {
+    "Kafka": {
+      "ConsumerConfig": {
+        "BootstrapServers": "127.0.0.1:29092",
+        "GroupId": "integration-test"
+      },
+      "ProducerConfig": {
+        "BootstrapServers": "127.0.0.1:29092"
+      }
+    }
+  }
+}
+```
+
 # Errors
 
 ## Immediate Error Handling
