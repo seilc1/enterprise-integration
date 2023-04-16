@@ -96,7 +96,9 @@ public void ConfigureServices(IServiceCollection services)
 | ErrorHandling | DONE | Exceptions are forwarded to an ErrorChannel |
 | InMemoryChannel | DONE | Channel for passing messages in the same application |
 | RabbitMQChannel | DONE | Channel for passing messages via [RabbitMQ](https://www.rabbitmq.com/) queues |
-| KafkaChannel | TODO | Channel for passing messages via [Kafka](https://www.confluent.io/lp/apache-kafka) topics |
+| KafkaChannel | DONE | Channel for passing messages via [Kafka](https://www.confluent.io/lp/apache-kafka) topics |
+| Resilience(Retry) | TODO | When a message cannot be published to a channel (e.g. QueueSystem down, network issues), it will automatically retried. |
+| PollingActivator | TODO | Framework to define a flow step, which executes an polling algorithm till it returns an expected return |
 
 ## Components
 
