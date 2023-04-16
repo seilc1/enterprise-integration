@@ -30,13 +30,12 @@ jobs:
       - name: Build
         run: dotnet build $unit_test_project --no-restore --configuration Release
       - name: Test
-        run: dotnet test $unit_test_project --no-restore --logger:trx --results-directory "TestResults" 
+        run: dotnet test $unit_test_project --no-restore --logger:trx --collect:"XPlat Code Coverage" --results-directory "TestResults" 
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v3
         with:
           name: dotnet-results
           path: "TestResults"
-        if: ${{ always() }}
 
   integration_test:
     runs-on: ubuntu-latest
@@ -53,13 +52,12 @@ jobs:
       - name: Build
         run: dotnet build $integration_test_project --no-restore --configuration Release
       - name: Test
-        run: dotnet test $integration_test_project --no-restore --logger:trx --results-directory "TestResults" 
+        run: dotnet test $integration_test_project --no-restore --logger:trx --collect:"XPlat Code Coverage" --results-directory "TestResults" 
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v3
         with:
           name: dotnet-results
           path: "TestResults"
-        if: ${{ always() }}
 
   rabbitmq_test:
     runs-on: ubuntu-latest
@@ -77,13 +75,12 @@ jobs:
       - name: Build
         run: dotnet build $rabbitmq_test_project --no-restore --configuration Release
       - name: Test
-        run: dotnet test $rabbitmq_test_project --no-restore --logger:trx --results-directory "TestResults" 
+        run: dotnet test $rabbitmq_test_project --no-restore --logger:trx --collect:"XPlat Code Coverage" --results-directory "TestResults" 
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v3
         with:
           name: dotnet-results
           path: "TestResults"
-        if: ${{ always() }}
         
   kafka_test:
     runs-on: ubuntu-latest
@@ -101,10 +98,58 @@ jobs:
       - name: Build
         run: dotnet build $kafka_test_project --no-restore --configuration Release
       - name: Test
-        run: dotnet test $kafka_test_project --no-restore --logger:trx --results-directory "TestResults" 
+        run: dotnet test $kafka_test_project --no-restore --logger:trx --collect:"XPlat Code Coverage" --results-directory "TestResults"
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v3
         with:
           name: dotnet-results
           path: "TestResults"
-        if: ${{ always() }}
+
+  code_coverage:
+    runs-on: ubuntu-latest
+    needs: [unit_test, integration_test, rabbitmq_test, kafka_test]
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: dotnet-results
+          path: "TestResults"
+
+      - name: Setup .NET Core # Required to execute ReportGenerator
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.x
+          dotnet-quality: 'ga'
+
+      - name: ReportGenerator
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.1.19
+        with:
+          reports: 'TestResults/**/coverage.cobertura.xml'
+          targetdir: 'CoverageReport'
+          reporttypes: 'HtmlInline;Cobertura'
+          
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: CoverageReport
+          path: "CoverageReport"
+
+      - name: Code Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: 'CoverageReport/Cobertura.xml'
+          badge: true
+          fail_below_min: true
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+          thresholds: '60 80'
+     
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: code-coverage-results.md
+          
