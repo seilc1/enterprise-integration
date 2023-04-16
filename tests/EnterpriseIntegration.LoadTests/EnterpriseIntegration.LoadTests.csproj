@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cocona" Version="2.0.3" />
-    <PackageReference Include="NBomber" Version="2.1.5" />
+    <PackageReference Include="Cocona" Version="2.2.0" />
+    <PackageReference Include="NBomber" Version="4.1.2" />
   </ItemGroup>
 
   <ItemGroup>

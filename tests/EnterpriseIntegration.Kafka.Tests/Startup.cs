@@ -1,12 +1,9 @@
-﻿using EnterpriseIntegation.RabbitMQ;
-using EnterpriseIntegration.TestCommon.Examples;
+﻿using EnterpriseIntegration.TestCommon.Examples;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.IO;
 using Xunit.DependencyInjection.Logging;
 
-namespace EnterpriseIntegration.RabbitMQ.Tests;
+namespace EnterpriseIntegration.Kafka.Tests;
 
 public class Startup
 {
@@ -22,8 +19,8 @@ public class Startup
             .AddSingleton<RoutingFlow002>()
             .AddSingleton<SplitterAggregatorFlow003>()
             .AddSingleton<ErrorFlow>()
-            .WithRabbitMQMessaging(config)
-            .WithRabbitMQChannel("001_world")
+            .WithKafkaMessaging(config)
+            .WithKafkaChannel("001_world", c => c.EnsureCreated = true)
             .UseWireTap()
             .UseEnterpriseIntegration();
     }

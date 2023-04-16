@@ -18,7 +18,8 @@ namespace EnterpriseIntegration.Flow
         private readonly IDictionary<FlowNodeType, IMessageProcessor> _messageProcessors;
         private readonly IMessagingChannelProvider _messagingChannelProvider;
         private readonly IDictionary<ChannelId, FlowNode> _flowNodes = new Dictionary<ChannelId, FlowNode>();
-        private readonly ICollection<object> _subscriptions = new List<object>();
+        private readonly ICollection<ICreatedAsync> _subscriptions = new List<ICreatedAsync>();
+        private bool _initialized = false;
 
         public FlowEngine(
             ILogger<FlowEngine> logger,
@@ -50,7 +51,16 @@ namespace EnterpriseIntegration.Flow
             }
         }
 
-        [Endpoint(inChannelId: EngineChannels.DefaultErrorChannel)]
+        public async Task InitializationAsync()
+        {
+            if (!_initialized)
+            {
+                await Task.WhenAll(_subscriptions.Select(s => s.WaitReadyAsync()));
+                _initialized = true;
+            }
+        }
+
+            [Endpoint(inChannelId: EngineChannels.DefaultErrorChannel)]
         public void ErrorChannel(IMessage<MessageFailure> exceptionWithMessage)
         {
             _logger.LogError(exceptionWithMessage.Payload.Exception, "Error occured with message:{Message} and payload:{Payload}.", exceptionWithMessage, exceptionWithMessage.Payload.OriginalMessage);
@@ -75,10 +85,15 @@ namespace EnterpriseIntegration.Flow
             _subscriptions.Add(new ChannelSubscription<T>(this, flowNode, channel));
         }
 
-        public Task SendMessage(ChannelId channelId, IMessage message)
+        public async Task SendMessage(ChannelId channelId, IMessage message)
         {
+            if (!_initialized)
+            {
+                await InitializationAsync();
+            }
             _logger.LogDebug("SendMessage({Channel}, {Message})", channelId, message);
-            return _messagingChannelProvider.GetMessagingChannel(channelId).Send(message);
+
+            await _messagingChannelProvider.GetMessagingChannel(channelId).Send(message);
         }
 
         public Task Submit<T>(string channel, T messageOrPayload)
@@ -88,15 +103,13 @@ namespace EnterpriseIntegration.Flow
                 throw new ArgumentNullException(nameof(messageOrPayload));
             }
 
-            return messageOrPayload.GetType().IsMessage() 
+            return messageOrPayload.GetType().IsMessage()
                 ? SendMessage(channel, (IMessage)messageOrPayload)
                 : Submit(channel, new MessageHeaders(), messageOrPayload);
         }
 
-        public async Task Submit<T>(string channel, IMessageHeaders headers, T payload)
-        {
-            await SendMessage(channel, new GenericMessage<T>(headers, payload));
-        }
+        public Task Submit<T>(string channel, IMessageHeaders headers, T payload)
+            => SendMessage(channel, new GenericMessage<T>(headers, payload));
 
         public void Dispose()
         {
@@ -112,20 +125,14 @@ namespace EnterpriseIntegration.Flow
             }
         }
 
-        private async Task ExecutePreActions<T>(FlowNode flowNode, IMessage<T> message)
-        {
-            await Task.WhenAll(_preActions.Select(a => a.PreProcess(flowNode, message)));
-        }
+        private Task ExecutePreActions<T>(FlowNode flowNode, IMessage<T> message)
+            => Task.WhenAll(_preActions.Select(a => a.PreProcess(flowNode, message)));
 
         public Task Send<T>(ChannelId channelId, T payload)
-        {
-            return Send(channelId, new MessageHeaders(), payload);
-        }
+            => Send(channelId, new MessageHeaders(), payload);
 
-        public async Task Send<T>(ChannelId channelId, IMessageHeaders headers, T payload)
-        {
-            await SendMessage(channelId, new GenericMessage<T>(headers, payload));
-        }
+        public Task Send<T>(ChannelId channelId, IMessageHeaders headers, T payload)
+            => SendMessage(channelId, new GenericMessage<T>(headers, payload));
 
         private async Task HandleException(Exception ex, IMessage message, FlowNode flowNode)
         {
@@ -147,18 +154,19 @@ namespace EnterpriseIntegration.Flow
         ///     Creates a subscription to a <see cref="IMessagingChannel"/> directing the received messages to 
         ///     the correct processor.
         /// </summary>
-        private class ChannelSubscription<T>
+        private class ChannelSubscription<T> : ICreatedAsync
         {
             private readonly FlowEngine _engine;
+
             private readonly FlowNode _flowNode;
-            private readonly Lazy<Func<IMessage<T>, Task>> _receiver;
+
+            private readonly Task _subscriptionTask;
 
             public ChannelSubscription(FlowEngine engine, FlowNode flowNode, IMessagingChannel messagingChannel)
             {
                 _engine = engine;
                 _flowNode = flowNode;
-                _receiver = new Lazy<Func<IMessage<T>, Task>>(() => Receiver());
-                messagingChannel.Subscribe(_receiver.Value);
+                _subscriptionTask = messagingChannel.Subscribe(Receiver());
             }
 
             private Func<IMessage<T>, Task> Receiver()
@@ -175,7 +183,7 @@ namespace EnterpriseIntegration.Flow
                     {
                         await _engine.ExecutePreActions(_flowNode, msg);
                         await processor(msg, _flowNode, _engine.SendMessage);
-                    } 
+                    }
                     catch (Exception ex)
                     {
                         await _engine.HandleException(ex, msg, _flowNode);
@@ -183,6 +191,12 @@ namespace EnterpriseIntegration.Flow
                 };
             }
 
+            public Task WaitReadyAsync()
+                => _subscriptionTask;
+        }
+
+        private interface ICreatedAsync {
+            public Task WaitReadyAsync();
         }
     }
 }
